@@ -1,0 +1,19 @@
+autostart = true
+tracelevel = 'DEBUG'
+
+[SERIAL]
+port = 'serial0'
+baudrate = 115200
+bytesize = 8
+parity = 'N'
+stopbits = 1
+flowcontrol = 'off'
+
+[NTRIPC]
+#domain = 'odincova.ddns.com'
+domain = '178.127.176.25'
+port = 2101
+mountpoint = 'TST1'
+username = 'SERGE'
+password = '123'
+str = ''
