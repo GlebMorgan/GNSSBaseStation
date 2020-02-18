@@ -1,4 +1,19 @@
--msg "1005(1),1074(1),1084(1),1094(1), 1124(1), 1230(1)"
+# Install GPSD (for ubxtool) - IDK how to run ubxtool out of it
+sudo apt-get install gpsd
+sudo systemctl stop gpsd
+sudo systemctl stop gpsd.socket
+
+sudo ./str2str \
+-in serial://serial0:115200#rtcm3 \
+–out ntrips://:123@192.168.100.12:2101/TST1#rtcm3 \
+-msg "1005(1), 1074(1), 1084(1), 1094(1), 1124(1), 1230(1)" \
+-p 53.8987951, 27.4489548, 301.5
+
+
+
+python ubxtool.py -f /dev/serial0 -s 115200 -g  -w 0.01
+
+
 
 37.44.83.78
 
