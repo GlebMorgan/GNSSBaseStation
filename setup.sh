@@ -19,6 +19,15 @@ sudo bash -c "echo -e '\nenable_uart=1' >> /boot/config.txt"
 # Disable serial console output
 sudo bash -c "echo 'console=tty1 root=PARTUUID=6c586e13-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait' > /boot/cmdline.txt"
 
+# Add 'l' and 'll' aliases to bash
+echo "
+export LS_OPTIONS='--color=auto'
+eval \"\`dircolors\`\"
+alias ls='ls $LS_OPTIONS'
+alias ll='ls $LS_OPTIONS -l'
+alias l='ls $LS_OPTIONS -lA'
+" >> ~/.profile
+
 #########################################################################
 
 echo PYTHON
