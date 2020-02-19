@@ -50,12 +50,15 @@ cd ~
 echo RTKLIB
 
 # Download RTKLIB package from GitHub
-sudo wget https://github.com/tomojitakasu/RTKLIB/archive/master.zip
+# "master" - old stable RTKLIB 2.4.2
+# "rtklib_2.4.3" - latest RTKLIB 2.4.3 b33
+RTKLIB_VERSION="rtklib_2.4.3"
+sudo wget https://github.com/tomojitakasu/RTKLIB/archive/$RTKLIB_VERSION.zip
 
 # Unzip to /home directory and rename to RTKLIB
-unzip master.zip
-sudo mv RTKLIB-master RTKLIB
-sudo rm master.zip
+unzip $RTKLIB_VERSION.zip
+sudo mv RTKLIB-$RTKLIB_VERSION RTKLIB
+sudo rm $RTKLIB_VERSION.zip
 
 # Correct RTKLIB makefile
 cd ~/RTKLIB/app/str2str/gcc
@@ -64,7 +67,7 @@ sed -i 's@SRC    = ../../../src@SRC = /home/pi/RTKLIB/src@' makefile
 
 # Create str2str binary
 sudo make
-sudo cp str2str /home/pi/RTKLIB/bin/str2str
+sudo mv str2str /home/pi/RTKLIB/bin/str2str
 sudo chmod +x /home/pi/RTKLIB/bin/str2str
 cd ~
 
