@@ -20,3 +20,7 @@ python ubxtool.py -f /dev/serial0 -s 115200 -g  -w 0.01
 188415
 
 pkill -2 python
+
+./str2str-b33 -in serial://serial0:115200#rtcm3 -out file://temp.rtcm3 &
+./str2str-b33 -in serial://serial0:115200#ubx -out file://temp.ubx &
+pkill str2str-b33

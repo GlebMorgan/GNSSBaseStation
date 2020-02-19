@@ -18,53 +18,91 @@ import os
 import sys
 import toml
 from pathlib import Path
-from subprocess import Popen, STDOUT, PIPE, DEVNULL
+from subprocess import run, Popen, STDOUT, PIPE, DEVNULL
 
 
-__version__ = "0.1dev2"
+__version__ = "1.0dev1"
 
 str2strProcess = None
-autoMode = '-a' in sys.argv
 
 PROJECT = Path(__file__).parent.absolute()
 CONFIG_FILE = PROJECT / 'config.toml'
 STR2STR = PROJECT / 'str2str'
+PID_FILE = Path('/run/user/ntrips.pid')
+
+
+def die(exitcode=0):
+    print(f"Exiting script ({exitcode})")
+    sys.exit(exitcode)
+
+
+def start_server(config):
+    if PID_FILE.exists():
+        print("NTRIP server is already running")
+        die(0)
+
+    in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**config['SERIAL'])
+    out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**config['NTRIPC'])
+
+    str2strCommand = str(STR2STR), '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
+
+    print("Starting NTRIP server...")
+    print(' '.join(str2strCommand))
+    str2strProcess = Popen(str2strCommand, encoding='utf-8', stderr=STDOUT)
+
+    print("NTRIP server process spawned")
+    ...
+    PID_FILE.touch()
+    PID_FILE.write_text(str(os.getpid()))
+
+    return str2strProcess.returncode
+
+
+def stop_server():
+    if not PID_FILE.exists():
+        print("NTRIP server is not running")
+        die(0)
+
+    print("Terminating NTRIP server... ")
+    str2str_pid = PID_FILE.read_text().strip()
+    result = run(['kill', '-INT', str2str_pid], capture_output=True, shell=True)
+    PID_FILE.unlink()
+
+    if result.stdout:
+        print(f"Unexpected result from 'kill' command: {result.stdout.decode()}")
+    else:
+        print(f"Killed process {str2str_pid}")
+
+    return result.returncode
 
 
 if __name__ == '__main__':
-    returncode = None
     try:
         print(f"Environment: '{PROJECT}'")
         print(f"Script: '{__file__}'")
 
-        config = toml.load(str(CONFIG_FILE))
+        if sys.argv[1] == 'stop':
+            sys.exit(stop_server())
 
-        if autoMode is True and config['autostart'] is False:
-            print("Automatic startup is disabled")
-            print("Enable with 'autostart=true' in config.toml")
-            print("Exiting script")
-            exit(0)
+        elif sys.argv[1] == 'start':
+            config = toml.load(str(CONFIG_FILE))
+            if config['autostart'] is False and '-a' in sys.argv:
+                print("Automatic startup is disabled")
+                print("Enable with 'autostart=true' in config.toml")
+                die(0)
+            sys.exit(start_server(config))
 
-        in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**config['SERIAL'])
-        out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**config['NTRIPC'])
-
-        str2strCommand = str(STR2STR), '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
-
-        print("Starting NTRIP server...")
-        print(' '.join(str2strCommand))
-        str2strProcess = Popen(str2strCommand, encoding='utf-8', stderr=STDOUT)
-
-        print("NTRIP server process spawned")
-        str2strProcess.wait()
+        else:
+            print("TODO: print launcher info")  # TODO
 
     except KeyboardInterrupt:
         print("Script interrupt request")
     except Exception as e:
         print(f'{e.__class__.__name__}: {e}')
-        returncode = 1
+        exitcode = 1
     else:
         print("NTRIP server process terminated unexpectedly")
-        returncode = 1
+        exitcode = 1
     finally:
         if str2strProcess and str2strProcess.poll() is None:
             print("Terminating NTRIP server process...")
@@ -72,6 +110,5 @@ if __name__ == '__main__':
             str2strProcess.wait(3)  # wait str2str to terminate - 3s should be by far enough
             if str2strProcess.poll() is None:
                 str2strProcess.kill()
-        returncode = returncode or str2strProcess.poll()
-        print(f"Exiting script ({returncode})")
-        sys.exit(returncode)
+        exitcode = exitcode or str2strProcess.poll()
+        die(exitcode)
