@@ -1,12 +1,16 @@
-#!/usr/bin python3
+#!/usr/bin/env python3
 
 """
 Minimal Viable Base Station
 
-Starts RTKLIB str2str application that expects RTCM3.3 messages on serial port
-    and deploys NTRIP server that sends all messages it receives to an NTRIP Caster.
+Effectively is a wrapper around RTKLIB str2str application.
+Deploys NTRIP server that expects RTCM3.3 messages on serial port and transmits them
+    over serial port to an NTRIP Caster defined in configuration file.
 
-Uses configuration stored in config.toml in same directory as the script itself.
+Configuration file 'config.toml' is expected in script location directory
+    and is used to control the behaviour of str2str utility as well as launcher itself.
+
+Available commands are shown when running script with no arguments.
 
 When executing in automatic mode, provide '-a' argument.
 In this case it will exit without launching NTRIP server if
@@ -14,64 +18,129 @@ In this case it will exit without launching NTRIP server if
 
 """
 
-import os
 import sys
 import toml
 from pathlib import Path
-from subprocess import Popen, STDOUT, PIPE, DEVNULL
+from subprocess import run, Popen, DEVNULL, STDOUT
 
 
-__version__ = "0.1dev2"
-
-str2strProcess = None
-autoMode = '-a' in sys.argv
+__version__ = "1.0dev1"
 
 PROJECT = Path(__file__).parent.absolute()
 CONFIG_FILE = PROJECT / 'config.toml'
 STR2STR = PROJECT / 'str2str'
+PID_FILE = Path('/run/user/test/ntrips.pid')  # TODO: configure system to create tmpfs folder automatically
+
+str2str_process = None
+
+help_message = f"""
+Minimal viable base station v{__version__}
+Commands:
+    state - show current state of NTRIP server (running / stopped)
+    start - start NTRIP server with parameters specified in config.toml
+    stop  - terminate NTRIP server
+"""
+
+
+def die(exitcode=0):
+    print(f"Exiting script ({exitcode})")
+    sys.exit(exitcode)
+
+
+def start_server(params: dict) -> int:
+    if PID_FILE.exists():
+        print("NTRIP server is already running")
+        die(0)
+
+    in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**params['SERIAL'])
+    out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**params['NTRIPC'])
+
+    str2str_command = str(STR2STR), '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
+
+    print("Starting NTRIP server...")
+    print(' '.join(str2str_command))
+
+    global str2str_process
+    capture_output = None if '-a' in sys.argv else DEVNULL
+
+    PID_FILE.touch()
+    str2str_process = Popen(str2str_command, encoding='utf-8', stdin=DEVNULL, stdout=capture_output, stderr=STDOUT)
+    PID_FILE.write_text(str(str2str_process.pid))
+
+    print("NTRIP server process spawned")
+
+    return 0
+
+
+def stop_server() -> int:
+    if not PID_FILE.exists():
+        print("NTRIP server is not running")
+        die(0)
+
+    print("Terminating NTRIP server... ")
+    str2str_pid = PID_FILE.read_text().strip()
+    result = run(f'kill -INT {str2str_pid}', capture_output=True, shell=True)
+
+    if result.stdout:
+        print(f"Got unexpected result from 'kill' command: {result.stdout.decode()}")
+    if result.returncode != 0:
+        print("Failed to terminate NTRIP server process")
+    else:
+        print(f"Terminated process #{str2str_pid}")
+        PID_FILE.unlink()
+
+    return result.returncode
 
 
 if __name__ == '__main__':
-    returncode = None
     try:
         print(f"Environment: '{PROJECT}'")
         print(f"Script: '{__file__}'")
 
-        config = toml.load(str(CONFIG_FILE))
+        if len(sys.argv) < 2:
+            print(help_message)
+            die(0)
 
-        if autoMode is True and config['autostart'] is False:
-            print("Automatic startup is disabled")
-            print("Enable with 'autostart=true' in config.toml")
-            print("Exiting script")
-            exit(0)
+        command = sys.argv[1]
 
-        in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**config['SERIAL'])
-        out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**config['NTRIPC'])
+        if command == 'stop':
+            die(stop_server())
 
-        str2strCommand = str(STR2STR), '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
+        elif command == 'start':
+            config = toml.load(str(CONFIG_FILE))
+            print(f"Loaded {CONFIG_FILE.name}")
+            if config['autostart'] is False and '-a' in sys.argv:
+                print("Automatic startup is disabled")
+                print("Enable with 'autostart=true' in config.toml")
+                # CONSIDER: am I gonna see above msg anywhere when script will be executed by cron?
+                die(0)
+            die(start_server(config))
 
-        print("Starting NTRIP server...")
-        print(' '.join(str2strCommand))
-        str2strProcess = Popen(str2strCommand, encoding='utf-8', stderr=STDOUT)
+        elif command == 'state':
+            if PID_FILE.exists():
+                if run('ps -C str2str', shell=True, capture_output=True).returncode != 0:
+                    print("'str2str' process has terminated unexpectedly")
+                    PID_FILE.unlink()
+                    state = "killed"
+                else:
+                    state = "running"
+            else:
+                state = "stopped"
+            print(f"NTRIP server is {state}")
 
-        print("NTRIP server process spawned")
-        str2strProcess.wait()
+        else:
+            print(f"Error: invalid command '{command}'")
 
-    except KeyboardInterrupt:
-        print("Script interrupt request")
+        die(0)
+
     except Exception as e:
         print(f'{e.__class__.__name__}: {e}')
-        returncode = 1
-    else:
-        print("NTRIP server process terminated unexpectedly")
-        returncode = 1
-    finally:
-        if str2strProcess and str2strProcess.poll() is None:
-            print("Terminating NTRIP server process...")
-            str2strProcess.terminate()
-            str2strProcess.wait(3)  # wait str2str to terminate - 3s should be by far enough
-            if str2strProcess.poll() is None:
-                str2strProcess.kill()
-        returncode = returncode or str2strProcess.poll()
-        print(f"Exiting script ({returncode})")
-        sys.exit(returncode)
+
+        if str2str_process and str2str_process.poll() is None:
+            print("Terminating 'str2str' process...")
+            str2str_process.terminate()
+            # Wait str2str to terminate - 3s should be by far enough
+            str2str_process.wait(3)
+            if str2str_process.poll() is None:
+                str2str_process.kill()
+        die(1)
