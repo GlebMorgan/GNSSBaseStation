@@ -30,6 +30,7 @@ PROJECT = Path(__file__).parent.absolute()
 CONFIG_FILE = PROJECT / 'config.toml'
 STR2STR = PROJECT / 'str2str'
 PID_FILE = Path('/run/user/test/ntrips.pid')  # TODO: configure system to create tmpfs folder automatically
+STR2STR_LOG = PROJECT / 'str2str.log'
 
 str2str_process = None
 
@@ -61,7 +62,7 @@ def start_server(params: dict) -> int:
     print(' '.join(str2str_command))
 
     global str2str_process
-    capture_output = None if '-a' in sys.argv else DEVNULL
+    capture_output = STR2STR_LOG.open('w') if '-a' in sys.argv else DEVNULL
 
     PID_FILE.touch()
     str2str_process = Popen(str2str_command, encoding='utf-8', stdin=DEVNULL, stdout=capture_output, stderr=STDOUT)

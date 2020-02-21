@@ -1,4 +1,5 @@
 autostart = true
+# tracelevel is not used for now
 tracelevel = 'DEBUG'
 
 [SERIAL]
@@ -10,8 +11,7 @@ stopbits = 1
 flowcontrol = 'off'
 
 [NTRIPC]
-#domain = 'odincova.ddns.com'
-domain = '178.127.176.25'
+domain = 'odincova.ddns.net'
 port = 2101
 mountpoint = 'TST1'
 username = 'SERGE'
