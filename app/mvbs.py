@@ -148,4 +148,8 @@ if __name__ == '__main__':
             str2str_process.wait(3)
             if str2str_process.poll() is None:
                 str2str_process.kill()
+        try:
+            PID_FILE.unlink()
+        except Exception:
+            pass
         die(1)
