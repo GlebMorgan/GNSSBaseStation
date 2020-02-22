@@ -28,8 +28,8 @@ __version__ = "1.0dev2"
 
 PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT / 'config.toml'
-STR2STR = PROJECT / 'str2str'
-STR2STR_LOG = PROJECT / 'str2str.log'
+STR2STR = PROJECT / 'bin' / 'str2str'
+STR2STR_LOG = PROJECT / 'logs' / 'str2str.log'
 PID_FILE_NAME = 'ntrips.pid'
 PID_FILE = None
 

@@ -8,7 +8,7 @@ crontab -l > crontab_temp.txt
 
 # Echo new cron into crontab file
 echo "* * * * * >/dev/null 2>&1
-@reboot python /home/pi/app/mvbs.py start -a > /home/pi/app/mvbs.log" \
+@reboot python /home/pi/app/mvbs.py start -a > /home/pi/app/logs/mvbs.log" \
 >> crontab_temp.txt
 
 # Install new cron file
