@@ -29,8 +29,9 @@ __version__ = "1.0dev1"
 PROJECT = Path(__file__).parent.absolute()
 CONFIG_FILE = PROJECT / 'config.toml'
 STR2STR = PROJECT / 'str2str'
-PID_FILE = Path('/run/user/test/ntrips.pid')  # TODO: configure system to create tmpfs folder automatically
 STR2STR_LOG = PROJECT / 'str2str.log'
+PID_FILE_NAME = 'ntrips.pid'
+PID_FILE = None
 
 str2str_process = None
 
@@ -98,6 +99,11 @@ if __name__ == '__main__':
         print(f"Environment: '{PROJECT}'")
         print(f"Script: '{__file__}'")
 
+        config = toml.load(str(CONFIG_FILE))
+        print(f"Loaded {CONFIG_FILE.name}")
+
+        PID_FILE = Path(config['tmpfsdir']) / PID_FILE_NAME
+
         if len(sys.argv) < 2:
             print(help_message)
             die(0)
@@ -108,8 +114,6 @@ if __name__ == '__main__':
             die(stop_server())
 
         elif command == 'start':
-            config = toml.load(str(CONFIG_FILE))
-            print(f"Loaded {CONFIG_FILE.name}")
             if config['autostart'] is False and '-a' in sys.argv:
                 print("Automatic startup is disabled")
                 print("Enable with 'autostart=true' in config.toml")

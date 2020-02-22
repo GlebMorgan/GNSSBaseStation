@@ -1,6 +1,7 @@
 autostart = true
 # tracelevel is not used for now
 tracelevel = 'DEBUG'
+tmpfsdir = '/run/user/bs'
 
 [SERIAL]
 port = 'serial0'
