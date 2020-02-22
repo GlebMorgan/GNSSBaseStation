@@ -134,3 +134,4 @@ dmypy.json
 # Others
 /ubxtool_config_items.txt
 /ubxtool_items.txt
+/test.sh

@@ -24,3 +24,11 @@ pkill -2 python
 ./str2str-b33 -in serial://serial0:115200#rtcm3 -out file://temp.rtcm3 &
 ./str2str-b33 -in serial://serial0:115200#ubx -out file://temp.ubx &
 pkill str2str-b33
+
+
+str2str statuses:
+
+address error (<domain or IP>)
+connect error (<err code>)
+connecting...
+<domain or IP>/<mntpoint>
