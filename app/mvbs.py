@@ -24,9 +24,9 @@ from pathlib import Path
 from subprocess import run, Popen, DEVNULL, STDOUT
 
 
-__version__ = "1.0dev1"
+__version__ = "1.0dev2"
 
-PROJECT = Path(__file__).parent.absolute()
+PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT / 'config.toml'
 STR2STR = PROJECT / 'str2str'
 STR2STR_LOG = PROJECT / 'str2str.log'
