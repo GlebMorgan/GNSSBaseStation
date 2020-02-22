@@ -135,3 +135,5 @@ dmypy.json
 /ubxtool_config_items.txt
 /ubxtool_items.txt
 /test.sh
+/gps/
+/ubxtool.py
