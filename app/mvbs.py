@@ -63,10 +63,10 @@ def start_server(params: dict) -> int:
     print(' '.join(str2str_command))
 
     global str2str_process
-    capture_output = STR2STR_LOG.open('w') if '-a' in sys.argv else DEVNULL
 
     PID_FILE.touch()
-    str2str_process = Popen(str2str_command, encoding='utf-8', stdin=DEVNULL, stdout=capture_output, stderr=STDOUT)
+    str2str_process = Popen(str2str_command, encoding='utf-8',
+                            stdin=DEVNULL, stdout=STR2STR_LOG.open('w'), stderr=STDOUT)
     PID_FILE.write_text(str(str2str_process.pid))
 
     print("NTRIP server process spawned")
