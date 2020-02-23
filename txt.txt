@@ -38,4 +38,8 @@ connecting...
 
 
 
-python ../ubxtool.py -f /dev/serial0 -s 115200 -w 0.5 -l 1
+for executables - chmod 774
+
+
+
+python ./ubxtool.py -f /dev/serial0 -s 115200 -w 0.5 -l 1 -z CFG-TMODE-MODE,2

@@ -79,7 +79,7 @@ if __name__ == '__main__':
         exit(1)
 
     UBX_CONFIG_FILE = Path(argv[1]).resolve().absolute()
-    VALSET = ['python', '../ubxtool.py', '-f', '/dev/serial0', '-s', '115200', '-w', '0.5']
+    VALSET = ['python', 'ubxtool.py', '-f', '/dev/serial0', '-s', '115200', '-w', '0.5']
 
     to_del, to_set = get_sections(UBX_CONFIG_FILE)
 

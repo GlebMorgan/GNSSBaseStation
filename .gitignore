@@ -139,5 +139,5 @@ test*.txt
 /ubxtool_config_items.txt
 /ubxtool_items.txt
 /test.sh
-/gps/
+/app/gps/
 /ubxtool_*.py

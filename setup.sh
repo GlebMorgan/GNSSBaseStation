@@ -43,7 +43,6 @@ pip3 install pyserial
 cd /usr/bin
 sudo rm python
 sudo ln -s python3 python
-cd ~
 
 #########################################################################
 
@@ -53,6 +52,7 @@ echo RTKLIB
 # "master" - old stable RTKLIB 2.4.2
 # "rtklib_2.4.3" - latest RTKLIB 2.4.3 b33
 RTKLIB_VERSION="rtklib_2.4.3"
+cd ~
 sudo wget https://github.com/tomojitakasu/RTKLIB/archive/$RTKLIB_VERSION.zip
 
 # Unzip to /home directory and rename to RTKLIB
@@ -69,41 +69,42 @@ sed -i 's@SRC    = ../../../src@SRC = /home/pi/RTKLIB/src@' makefile
 sudo make
 sudo mv str2str /home/pi/RTKLIB/bin/str2str
 sudo chmod +x /home/pi/RTKLIB/bin/str2str
-cd ~
 
 #########################################################################
 
 echo APP
 
 # Create 'app' directory
-mkdir app
+mkdir ~/app
 
 # Create symlink to 'str2str'
 cd ~/app
 ln -s /home/pi/RTKLIB/bin/str2str str2str
-cd ~
 
 #########################################################################
 
 echo UCENTER
 
 # uBlox <-> uCenter forwarding
-sudo apt-get install socat
 cd ~/app
+sudo apt-get install socat
 echo "sudo socat tcp-listen:2020,reuseaddr /dev/serial0,b115200,raw,echo=0" > ucenter_forward.sh
 sudo chmod +x ucenter_forward.sh
-cd ~
 
 #########################################################################
 
 echo UBXTOOL
 
-# Get GPSD/ubxtool from GitHub with necessary dependencies to /app directory
-cd ~
-wget https://github.com/bzed/gpsd-mirror/archive/master.zip
-unzip master.zip gpsd-mirror-master/ubxtool gpsd-mirror-master/gps/*
-mv gpsd-mirror-master/* .
-mv ubxtool ubxtool.py
-rm -r gpsd-mirror-master
-rm master.zip
-python ubxtool.py -h
+# Get GPSD/gps from GitLab to /app directory
+cd ~/app
+sudo apt-get install scons
+wget https://gitlab.com/gpsd/gpsd/-/archive/master/gpsd-master.zip
+unzip gpsd-master.zip
+rm gpsd-master.zip
+
+cd gpsd-master
+scons minimal=yes ublox=yes
+cd ..
+
+mv gpsd-master/gps .
+sudo rm -r gpsd-master
