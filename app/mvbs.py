@@ -117,7 +117,6 @@ if __name__ == '__main__':
             if config['autostart'] is False and '-a' in sys.argv:
                 print("Automatic startup is disabled")
                 print("Enable with 'autostart=true' in config.toml")
-                # CONSIDER: am I gonna see above msg anywhere when script will be executed by cron?
                 die(0)
             die(start_server(config))
 

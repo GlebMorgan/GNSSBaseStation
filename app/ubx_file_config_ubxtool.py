@@ -15,7 +15,7 @@ CONFIG_FILE = PROJECT / 'config.toml'
 PID_FILE_NAME = 'ntrips.pid'
 
 
-def get_sections_itertools(file: Path) -> Tuple[Tuple[str], Tuple[str]]:
+def get_sections_itertools(file: Path) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
     """
     Split 'file' to [del] and [set] sections and return tuple
         (<items_to_del>, <items_to_set>) with raw config file strings
@@ -24,8 +24,7 @@ def get_sections_itertools(file: Path) -> Tuple[Tuple[str], Tuple[str]]:
     lines.__next__()  # consume '[del]' marker itself
     del_items = tuple(takewhile(lambda line: line.strip() != '[set]', lines))
     set_items = tuple(lines)
-
-    return del_items, set_items  # FIXME: why is this highlighted???
+    return del_items, set_items
 
 
 def get_sections(file: Path) -> Tuple[List[tuple], List[tuple]]:

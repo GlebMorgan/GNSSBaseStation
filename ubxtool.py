@@ -1,4 +1,4 @@
-#!@PYSHEBANG@
+#!/usr/bin/env python
 # -*- coding: UTF-8
 # @GENERATED@
 '''
@@ -1752,7 +1752,7 @@ class ubx(object):
                 return item
 
         # not found, build a fake item, guess on decode
-        name = "CFG-%u-%u" % ((key >> 16) & 0xff, ket & 0xff)
+        name = "CFG-%u-%u" % ((key >> 16) & 0xff, key & 0xff)
         kmap = {0: "Z0",
                 1: "L",
                 2: "U1",
@@ -6585,12 +6585,12 @@ Always double check with "-p CFG-GNSS".
             m_data.extend(k_data)
         gps_model.gps_send(0x06, 0x8b, m_data)
 
-    def send_cfg_valset(self, nvs):
+    def send_cfg_valset(self, nvs, layer=0x7):
         """UBX-CFG-VALSET, set config items by key/val pairs"""
 
         m_data = bytearray(4)
         m_data[0] = 0      # version, 0 = request, 1 = transaction
-        m_data[1] = 0x7    # RAM layer, 1=RAM, 2=BBR, 4=Flash
+        m_data[1] = layer  # RAM layer, 1=RAM, 2=BBR, 4=Flash
 
         for nv in nvs:
             size = 4
@@ -7329,6 +7329,7 @@ def usage():
           '                     default: %s seconds\n'
           '       -x I          delete config item I\n'
           '       -z I,v        set config item I to v\n'
+          '       -l L          set config memory level\n'
           '\n' %
           (PROG_NAME, opts['input_file_name'],
            opts['protver'], opts['raw_file'],
@@ -7369,7 +7370,7 @@ else:
 try:
     (options, arguments) = getopt.getopt(options,
                                          "?c:d:e:f:g:hi:m:rP:p:"
-                                         "s:w:v:R:S:Vx:z:")
+                                         "s:w:v:R:S:Vx:z:l:")
 except getopt.GetoptError as err:
     sys.stderr.write("%s: %s\n"
                      "Try '%s -h' for more information.\n" %
@@ -7455,6 +7456,8 @@ for (opt, val) in options:
         opts['del_item'].append(val)
     elif opt == '-z':
         opts['set_item'].append(val)
+    elif opt == '-l':
+        opts['level'] = int(val)
 
 if opts['help']:
     usage()
@@ -7627,7 +7630,7 @@ try:
                 sys.stderr.write('%s: ERROR: item %s unknown\n' %
                                  (PROG_NAME, opts['set_item']))
                 exit(1)
-        gps_model.send_cfg_valset(nvs)
+        gps_model.send_cfg_valset(nvs, opts['level'])
 
     exit_code = io_handle.read(opts)
 

@@ -140,4 +140,4 @@ test*.txt
 /ubxtool_items.txt
 /test.sh
 /gps/
-/ubxtool.py
+/ubxtool_*.py
