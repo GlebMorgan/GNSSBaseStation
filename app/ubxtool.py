@@ -7447,7 +7447,7 @@ for (opt, val) in options:
         opts['verbosity'] = int(val)
     elif opt == '-w':
         try:
-            opts['input_wait'] = int(val)
+            opts['input_wait'] = float(val)
         except (ValueError):
             sys.stderr.write('%s: -w invalid time %s\n' % (PROG_NAME, val))
             sys.exit(1)
