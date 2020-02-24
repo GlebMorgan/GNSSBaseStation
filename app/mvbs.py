@@ -19,9 +19,13 @@ In this case it will exit without launching NTRIP server if
 """
 
 import sys
+from enum import Enum, Flag
+
 import toml
 from pathlib import Path
 from subprocess import run, Popen, DEVNULL, STDOUT
+
+from .ubx_config_ubxtool import wgs84_to_ublox, ubx_valset
 
 
 __version__ = "1.0dev2"
@@ -44,18 +48,28 @@ Commands:
 """
 
 
+class TMode(Enum):
+    DISABLED = 0
+    SVIN = 1
+    FIXED = 2
+
+
+class MLevel(Flag):
+    RAM = 1 << 0
+
+
 def die(exitcode=0):
     print(f"Exiting script ({exitcode})")
     sys.exit(exitcode)
 
 
-def start_server(params: dict) -> int:
+def start_server(serial_config: dict, ntripc_config: dict) -> int:
     if PID_FILE.exists():
         print("NTRIP server is already running")
         die(0)
 
-    in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**params['SERIAL'])
-    out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**params['NTRIPC'])
+    in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**serial_config)
+    out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**ntripc_config)
 
     str2str_command = str(STR2STR), '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
 
@@ -72,6 +86,32 @@ def start_server(params: dict) -> int:
     print("NTRIP server process spawned")
 
     return 0
+
+
+def config_ublox(params: dict, serial_config, memlevel=''):
+    spec = {}
+
+    try:
+        tmode = TMode[params['mode']]
+    except KeyError:
+        raise ValueError(f"Invalid time mode '{params['mode']}' in config.toml, "
+                         f"expected within [{', '.join(TMode.__members__)}]")
+
+    spec = dict(MODE=tmode.value)
+
+    if tmode is TMode.FIXED:
+        lat, lat_hp = wgs84_to_ublox(config['lat'], valtype='coordinate')
+        lon, lon_hp = wgs84_to_ublox(config['lon'], valtype='coordinate')
+        hgt, hgt_hp = wgs84_to_ublox(config['hgt'], valtype='height')
+
+        spec.update(
+            MODE=tmode,
+            LAT=lat, LAT_HP=lat_hp,
+            LON=lon, LON_HP=lon_hp,
+            HGT=hgt,  HGT_HP=hgt_hp,
+        )
+
+    returncode = ubx_valset(spec, baudrate=serial_config['baudrate'], memlevel=)
 
 
 def stop_server() -> int:
@@ -118,7 +158,8 @@ if __name__ == '__main__':
                 print("Automatic startup is disabled")
                 print("Enable with 'autostart=true' in config.toml")
                 die(0)
-            die(start_server(config))
+            config_ublox(config['BASE'], config['SERIAL'])
+            die(start_server(config['SERIAL'], config['NTRIPC']))
 
         elif command == 'state':
             if PID_FILE.exists():
