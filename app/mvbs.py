@@ -37,8 +37,7 @@ CONFIG_FILE = PROJECT / 'config.toml'
 STR2STR = PROJECT / 'bin' / 'str2str'
 STR2STR_LOG = PROJECT / 'logs' / 'str2str.log'
 UBXTOOL = Path(PROJECT) / 'ubxtool.py'
-PID_FILE_NAME = 'ntrips.pid'
-PID_FILE = None
+PID_FILE = Path('/run/user/bs/ntrips.pid')
 
 str2str_process = None
 
@@ -213,9 +212,6 @@ if __name__ == '__main__':
 
         config = toml.load(str(CONFIG_FILE))
         print(f"Loaded {CONFIG_FILE.name}")
-
-        # TODO: remove 'tmpfsdir' from config and specify as script constant
-        PID_FILE = Path(config['tmpfsdir']) / PID_FILE_NAME
 
         if len(sys.argv) < 2:
             print(help_message)

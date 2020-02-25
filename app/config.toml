@@ -1,7 +1,6 @@
 autostart = true
 # tracelevel is not used for now
 tracelevel = 'DEBUG'
-tmpfsdir = '/run/user/bs'
 
 [SERIAL]
 # Name of serial device in /dev
