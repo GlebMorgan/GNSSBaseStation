@@ -75,6 +75,13 @@ def die(exitcode=0):
     sys.exit(exitcode)
 
 
+def test(*args) -> int:
+    conf: dict = args[0]
+    for name, value in conf.items():
+        print(f'{name}: {value} <{value.__class__.__name__}>')
+    return 0
+
+
 def start_server(serial_config: dict, ntripc_config: dict) -> int:
     if PID_FILE.exists():
         print("NTRIP server is already running")
@@ -210,6 +217,9 @@ if __name__ == '__main__':
             die(0)
 
         command = sys.argv[1]
+
+        if command == 'test':
+            die(test(config))
 
         if command == 'stop':
             die(stop_server())
