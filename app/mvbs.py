@@ -166,8 +166,8 @@ def config_ublox(params: dict, serial_params: dict) -> int:
         raise ValueError(f"Invalid time mode '{params['mode']}' in config.toml, "
                          f"expected within [{', '.join(TMode.__members__)}]")
 
-    spec = dict(MODE=tmode.value)
-    print(f"Time mode = {tmode.name}")
+    spec = {'CFG-TMODE-MODE': tmode.value}
+    print(f"Time mode: {tmode.name}")
 
     if tmode is TMode.FIXED:
         print("Base station coordinates to:\n"
@@ -179,11 +179,11 @@ def config_ublox(params: dict, serial_params: dict) -> int:
         lon, lon_hp = wgs84_to_ublox(params['lon'], valtype='coordinate')
         hgt, hgt_hp = wgs84_to_ublox(params['hgt'], valtype='height')
 
-        spec.update(
-            LAT=lat, LAT_HP=lat_hp,
-            LON=lon, LON_HP=lon_hp,
-            HGT=hgt,  HGT_HP=hgt_hp,
-        )
+        spec.update({
+            'CFG-TMODE-LAT':    lat,    'CFG-TMODE-LAT_HP':    lat_hp,
+            'CFG-TMODE-LON':    lon,    'CFG-TMODE-LON_HP':    lon_hp,
+            'CFG-TMODE-HEIGHT': hgt,    'CFG-TMODE-HEIGHT_HP': hgt_hp,
+        })
 
     level = params['level'].upper()
     if isinstance(level, int):
