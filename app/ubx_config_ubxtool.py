@@ -21,11 +21,11 @@ def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
     return coord, coord_hp
 
 
-def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel):
+def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
     valset = [
         'python', str(UBXTOOL),
         '-f', '/dev/serial0', '-s', str(baudrate),
-        '-w', '0.5', '-l', memlevel
+        '-w', '0.5', '-l', str(memlevel)
     ]
     spec_pairs = (f'{key},{int(value)}' for key, value in spec.items())
     valset.extend(chain(*zip(repeat('-z'), spec_pairs)))

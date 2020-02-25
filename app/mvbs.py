@@ -20,12 +20,14 @@ In this case it will exit without launching NTRIP server if
 
 import sys
 from enum import Enum, Flag
+from functools import reduce
+from itertools import chain, repeat
+from operator import or_ as bitwise_or
+from typing import Tuple, Dict, Iterable
 
 import toml
 from pathlib import Path
 from subprocess import run, Popen, DEVNULL, STDOUT
-
-from .ubx_config_ubxtool import wgs84_to_ublox, ubx_valset
 
 
 __version__ = "1.0dev2"
@@ -34,6 +36,7 @@ PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT / 'config.toml'
 STR2STR = PROJECT / 'bin' / 'str2str'
 STR2STR_LOG = PROJECT / 'logs' / 'str2str.log'
+UBXTOOL = Path(PROJECT) / 'ubxtool.py'
 PID_FILE_NAME = 'ntrips.pid'
 PID_FILE = None
 
@@ -48,19 +51,35 @@ Commands:
 """
 
 
+class FlagEnum(Flag):
+    @property
+    def flags(self) -> list:
+        return Flag.__str__(self)[self.__class__.__name__.__len__()+1:].split('|')
+
+
 class TMode(Enum):
     DISABLED = 0
     SVIN = 1
     FIXED = 2
 
 
-class MLevel(Flag):
-    RAM = 1 << 0
+class MLevel(FlagEnum):
+    RAM   = 1 << 0
+    BBR   = 1 << 1
+    FLASH = 1 << 2
+    ALL   = 0b111
 
 
 def die(exitcode=0):
     print(f"Exiting script ({exitcode})")
     sys.exit(exitcode)
+
+
+def test(*args) -> int:
+    conf: dict = args[0]
+    for name, value in conf.items():
+        print(f'{name}: {value} <{value.__class__.__name__}>')
+    return 0
 
 
 def start_server(serial_config: dict, ntripc_config: dict) -> int:
@@ -88,33 +107,82 @@ def start_server(serial_config: dict, ntripc_config: dict) -> int:
     return 0
 
 
-def config_ublox(params: dict, serial_config, memlevel=''):
-    spec = {}
+def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
+    if valtype == 'height':
+        raw = value * 100
+    elif valtype == 'coordinate':
+        raw = value * 10_000_000
+    else:
+        raise ValueError("Invalid 'type' argument - "
+                         "expected 'height' or 'coordinate'")
+    coord = int(raw)
+    coord_hp = int((raw - coord) * 100)
+    return coord, coord_hp
 
+
+def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
+    # TODO: info msgs
+    valset = [
+        'python', str(UBXTOOL),
+        '-f', '/dev/serial0', '-s', str(baudrate),
+        '-w', '0.5', '-l', str(memlevel)
+    ]
+    spec_pairs = (f'{key},{int(value)}' for key, value in spec.items())
+    valset.extend(chain(*zip(repeat('-z'), spec_pairs)))
+
+    print("Command: " + '\n-z'.join(' '.join(valset).split('-z')))
+
+    input("Pause before sending config...")
+    ubxtool_process = run(valset)
+    print(f"ubxtool: exitcode {ubxtool_process.returncode}")
+
+    return ubxtool_process.returncode
+
+
+def config_ublox(params: dict, serial_params: dict) -> int:
+    print("Configuring ublox receiver...")
     try:
-        tmode = TMode[params['mode']]
+        tmode = TMode[params['mode'].upper()]
     except KeyError:
         raise ValueError(f"Invalid time mode '{params['mode']}' in config.toml, "
                          f"expected within [{', '.join(TMode.__members__)}]")
 
     spec = dict(MODE=tmode.value)
+    print(f"Time mode = {tmode.name}")
 
     if tmode is TMode.FIXED:
-        lat, lat_hp = wgs84_to_ublox(config['lat'], valtype='coordinate')
-        lon, lon_hp = wgs84_to_ublox(config['lon'], valtype='coordinate')
-        hgt, hgt_hp = wgs84_to_ublox(config['hgt'], valtype='height')
+        print("Base station coordinates to:\n"
+              f"    lat: {params['lat']}\n"
+              f"    lon: {params['lon']}\n"
+              f"    height: {params['hgt']}")
+
+        lat, lat_hp = wgs84_to_ublox(params['lat'], valtype='coordinate')
+        lon, lon_hp = wgs84_to_ublox(params['lon'], valtype='coordinate')
+        hgt, hgt_hp = wgs84_to_ublox(params['hgt'], valtype='height')
 
         spec.update(
-            MODE=tmode,
             LAT=lat, LAT_HP=lat_hp,
             LON=lon, LON_HP=lon_hp,
             HGT=hgt,  HGT_HP=hgt_hp,
         )
 
-    returncode = ubx_valset(spec, baudrate=serial_config['baudrate'], memlevel=)
+    level = params['level'].upper()
+    if isinstance(level, int):
+        level = MLevel(level)
+    elif isinstance(level, str):
+        level = MLevel[level]
+    elif isinstance(level, Iterable):
+        if any(item not in MLevel.__members__ for item in level):
+            raise ValueError(f"Invalid memory level specification {level} - "
+                             "Expected either level name or list of level names.")
+        level = reduce(bitwise_or, (MLevel[item] for item in level))
+    print(f"Save config to {', '.join(level.flags)} memory")
+
+    return ubx_valset(spec, baudrate=serial_params['baudrate'], memlevel=level.value)
 
 
 def stop_server() -> int:
+    # TODO: move this just below start_server() function
     if not PID_FILE.exists():
         print("NTRIP server is not running")
         die(0)
@@ -150,6 +218,9 @@ if __name__ == '__main__':
 
         command = sys.argv[1]
 
+        if command == 'test':
+            die(test(config))
+
         if command == 'stop':
             die(stop_server())
 
@@ -158,7 +229,10 @@ if __name__ == '__main__':
                 print("Automatic startup is disabled")
                 print("Enable with 'autostart=true' in config.toml")
                 die(0)
-            config_ublox(config['BASE'], config['SERIAL'])
+
+            if config['BASE']['autoconfig'] is True:
+                config_ublox(config['BASE'], config['SERIAL'])
+
             die(start_server(config['SERIAL'], config['NTRIPC']))
 
         elif command == 'state':

@@ -20,6 +20,10 @@ password = '123'
 str = ''
 
 [BASE]
+autoconfig = true
+# VALSET memory level = 'RAM', 'BBR', 'FLASH', 'ALL'
+# Multiple levels example = ['RAM', 'BBR']
+level = 'RAM'
 # Time mode = 'Disabled' | 'SvIn' | 'Fixed'
 mode = 'Fixed'
 # Coordinates in WGS84, height in [m], decimal separator is dot
