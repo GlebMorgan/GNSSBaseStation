@@ -81,6 +81,12 @@ mkdir ~/app
 cd ~/app
 ln -s /home/pi/RTKLIB/bin/str2str str2str
 
+# Add aliases to bash
+echo "
+alias mvbs='/home/pi/app/mvbs.py'
+alias sps='ps -A | grep'
+" >> ~/.profile
+
 #########################################################################
 
 echo UCENTER

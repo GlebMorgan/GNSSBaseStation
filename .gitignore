@@ -131,13 +131,10 @@ dmypy.json
 *.rtcm3
 *.ubx
 
-# Test .txt files
-TEST*.txt
-test*.txt
+# Test files
+TEST*.*
+test*.*
 
 # Others
-/ubxtool_config_items.txt
 /ubxtool_items.txt
-/test.sh
 /app/gps/
-/ubxtool_*.py

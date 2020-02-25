@@ -42,7 +42,7 @@ __version__ = "1.1"
 
 PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT / 'config.toml'
-STR2STR = PROJECT / 'bin' / 'str2str'
+STR2STR = PROJECT / 'str2str'
 STR2STR_LOG = PROJECT / 'logs' / 'str2str.log'
 UBXTOOL = Path(PROJECT) / 'ubxtool.py'
 PID_FILE = Path('/run/user/bs/ntrips.pid')
