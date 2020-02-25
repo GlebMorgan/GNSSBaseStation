@@ -18,3 +18,15 @@ mountpoint = 'TST1'
 username = 'SERGE'
 password = '123'
 str = ''
+
+[BASE]
+autoconfig = true
+# VALSET memory level = 'RAM', 'BBR', 'FLASH', 'ALL'
+# Multiple levels example = ['RAM', 'BBR']
+level = 'RAM'
+# Time mode = 'Disabled' | 'SvIn' | 'Fixed'
+mode = 'Fixed'
+# Coordinates in WGS84, height in [m], decimal separator is dot
+lat = 53.89878252
+lon = 27.44895374
+hgt = 303.882
