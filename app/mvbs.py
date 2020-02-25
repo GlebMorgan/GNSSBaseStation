@@ -107,6 +107,26 @@ def start_server(serial_config: dict, ntripc_config: dict) -> int:
     return 0
 
 
+def stop_server() -> int:
+    if not PID_FILE.exists():
+        print("NTRIP server is not running")
+        die(0)
+
+    print("Terminating NTRIP server... ")
+    str2str_pid = PID_FILE.read_text().strip()
+    result = run(f'kill -INT {str2str_pid}', capture_output=True, shell=True)
+
+    if result.stdout:
+        print(f"Got unexpected result from 'kill' command: {result.stdout.decode()}")
+    if result.returncode != 0:
+        print("Failed to terminate NTRIP server process")
+    else:
+        print(f"Terminated process #{str2str_pid}")
+        PID_FILE.unlink()
+
+    return result.returncode
+
+
 def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
     if valtype == 'height':
         raw = value * 100
@@ -121,7 +141,6 @@ def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
 
 
 def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
-    # TODO: info msgs
     valset = [
         'python', str(UBXTOOL),
         '-f', '/dev/serial0', '-s', str(baudrate),
@@ -179,27 +198,6 @@ def config_ublox(params: dict, serial_params: dict) -> int:
     print(f"Save config to {', '.join(level.flags)} memory")
 
     return ubx_valset(spec, baudrate=serial_params['baudrate'], memlevel=level.value)
-
-
-def stop_server() -> int:
-    # TODO: move this just below start_server() function
-    if not PID_FILE.exists():
-        print("NTRIP server is not running")
-        die(0)
-
-    print("Terminating NTRIP server... ")
-    str2str_pid = PID_FILE.read_text().strip()
-    result = run(f'kill -INT {str2str_pid}', capture_output=True, shell=True)
-
-    if result.stdout:
-        print(f"Got unexpected result from 'kill' command: {result.stdout.decode()}")
-    if result.returncode != 0:
-        print("Failed to terminate NTRIP server process")
-    else:
-        print(f"Terminated process #{str2str_pid}")
-        PID_FILE.unlink()
-
-    return result.returncode
 
 
 if __name__ == '__main__':
