@@ -30,6 +30,11 @@ from pathlib import Path
 from subprocess import run, Popen, DEVNULL, STDOUT
 
 
+# TODO: update script docstring
+
+# TODO: migrate to logging and make use of config['tracelevel']
+
+
 __version__ = "1.0dev2"
 
 PROJECT = Path('/home/pi/app')
@@ -105,7 +110,7 @@ def start_server(serial_config: dict, ntripc_config: dict) -> int:
 def stop_server() -> int:
     print("Terminating NTRIP server... ")
     str2str_pid = PID_FILE.read_text().strip()
-    result = run(f'kill -INT {str2str_pid}', capture_output=True, shell=True)
+    result = run(f'kill -INT {str2str_pid}', shell=True, text=True, capture_output=True)
 
     if result.stdout:
         print(f"Got unexpected result from 'kill' command: {result.stdout.decode()}")
@@ -158,7 +163,9 @@ def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
 
     print("Command: " + ' '.join(valset))
 
-    ubxtool_process = run(valset)
+    ubxtool_process = run(valset, text=True, capture_output=True)
+    # Proxying stdout as stdout handle inheritance induces race condition and output misalignment
+    print('\n' + ubxtool_process.stdout.strip('\n') + '\n')
     print(f"ubxtool: exitcode {ubxtool_process.returncode}")
 
     return ubxtool_process.returncode
@@ -258,7 +265,7 @@ if __name__ == '__main__':
 
         elif command == 'state':
             if PID_FILE.exists():
-                if run('ps -C str2str', shell=True, capture_output=True).returncode != 0:
+                if run('ps -C str2str', shell=True, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
                     print("'str2str' process has terminated unexpectedly")
                     PID_FILE.unlink()
                     state = "killed"
@@ -273,7 +280,11 @@ if __name__ == '__main__':
 
         die(0)
 
-    # CONSIDER: handle KeyboardInterrupt gracefully
+    except KeyboardInterrupt:
+        print("\n\n--- Script interrupted by SIGINT ---\n")
+        exitcode = cleanup_server()
+        die(exitcode)
+
     except Exception as e:
         print(f'{e.__class__.__name__}: {e or "<No details>"}')
         cleanup_server()
