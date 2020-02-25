@@ -4,6 +4,7 @@ tracelevel = 'DEBUG'
 tmpfsdir = '/run/user/bs'
 
 [SERIAL]
+# Name of serial device in /dev
 port = 'serial0'
 baudrate = 115200
 bytesize = 8
@@ -12,6 +13,7 @@ stopbits = 1
 flowcontrol = 'off'
 
 [NTRIPC]
+# NTRIP Caster domain name or IP address string
 domain = 'odincova.ddns.net'
 port = 2101
 mountpoint = 'TST1'

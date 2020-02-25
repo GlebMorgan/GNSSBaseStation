@@ -34,7 +34,7 @@ str2str statuses:
 address error (<domain or IP>)
 connect error (<err code>)
 connecting...
-<domain or IP>/<mntpoint>
+<domain or IP>/<mountpoint>
 
 
 
@@ -47,3 +47,28 @@ python ./ubxtool.py -f /dev/serial0 -s 115200 -w 0.5 -l 1 -z CFG-TMODE-MODE,2
 
 
 'python -B' prevents __pycache__ creation
+
+
+
+Transfer uncommitted work in progress to another workstation:
+
+1) Ponder attentively what files / resources need to be transferred
+2) Commit all files that needs to be transferred to new temporary branch
+3) Push new branch
+
+4) On another PC, pull new temporary branch and checkout
+5) Make sure all changes have been fetched and merged
+5) Apply stored work to master branch:
+    git checkout --detach
+    git reset --soft master
+    git checkout master
+6) Continue working till ready to make true commit
+7) Commit finished work stage. Push to master, make sure repo has updated
+8) Delete temporary branch
+
+Another approach is to use diff files:
+    git add
+    git diff HEAD > file.diff (also consider 'diff' options like --cached)
+
+    <later, on another machine>
+    git apply file.diff

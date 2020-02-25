@@ -93,7 +93,7 @@ def start_server(serial_config: dict, ntripc_config: dict) -> int:
     str2str_command = str(STR2STR), '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
 
     print("Starting NTRIP server...")
-    print(' '.join(str2str_command))
+    print("Command: " + ' '.join(str2str_command))
 
     global str2str_process
 
@@ -149,9 +149,8 @@ def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
     spec_pairs = (f'{key},{int(value)}' for key, value in spec.items())
     valset.extend(chain(*zip(repeat('-z'), spec_pairs)))
 
-    print("Command: " + '\n-z'.join(' '.join(valset).split('-z')))
+    print("Command: " + ' '.join(valset))
 
-    input("Pause before sending config...")
     ubxtool_process = run(valset)
     print(f"ubxtool: exitcode {ubxtool_process.returncode}")
 
@@ -159,21 +158,27 @@ def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
 
 
 def config_ublox(params: dict, serial_params: dict) -> int:
-    print("Configuring ublox receiver...")
+    print("Configuring uBlox receiver...")
+
+    tmode = params['mode']
     try:
-        tmode = TMode[params['mode'].upper()]
-    except KeyError:
-        raise ValueError(f"Invalid time mode '{params['mode']}' in config.toml, "
+        if isinstance(tmode, int):
+            tmode = TMode(tmode)
+        else:
+            tmode = TMode[tmode.upper()]
+    except (KeyError, AttributeError):
+        raise ValueError(f"Invalid time mode '{tmode}' in config.toml - "
                          f"expected within [{', '.join(TMode.__members__)}]")
 
     spec = {'CFG-TMODE-MODE': tmode.value}
     print(f"Time mode: {tmode.name}")
 
     if tmode is TMode.FIXED:
-        print("Base station coordinates to:\n"
-              f"    lat: {params['lat']}\n"
-              f"    lon: {params['lon']}\n"
-              f"    height: {params['hgt']}")
+        print("Base station coordinates:",
+              f"    lat: {params['lat']}",
+              f"    lon: {params['lon']}",
+              f"    height: {params['hgt']}",
+              sep='\n')
 
         lat, lat_hp = wgs84_to_ublox(params['lat'], valtype='coordinate')
         lon, lon_hp = wgs84_to_ublox(params['lon'], valtype='coordinate')
@@ -185,17 +190,18 @@ def config_ublox(params: dict, serial_params: dict) -> int:
             'CFG-TMODE-HEIGHT': hgt,    'CFG-TMODE-HEIGHT_HP': hgt_hp,
         })
 
-    level = params['level'].upper()
+    level = params['level']
     if isinstance(level, int):
         level = MLevel(level)
     elif isinstance(level, str):
-        level = MLevel[level]
+        level = MLevel[level.upper()]
     elif isinstance(level, Iterable):
-        if any(item not in MLevel.__members__ for item in level):
-            raise ValueError(f"Invalid memory level specification {level} - "
-                             "Expected either level name or list of level names.")
-        level = reduce(bitwise_or, (MLevel[item] for item in level))
-    print(f"Save config to {', '.join(level.flags)} memory")
+        for item in level:
+            if not isinstance(item, str) or item.upper() not in MLevel.__members__:
+                raise ValueError(f"Invalid memory level '{item}' in config.toml - "
+                                 f"expected within [{', '.join(MLevel.__members__)}]")
+        level = reduce(bitwise_or, (MLevel[item.upper()] for item in level))
+    print(f"Save config to memory levels: {', '.join(level.flags)}")
 
     return ubx_valset(spec, baudrate=serial_params['baudrate'], memlevel=level.value)
 
@@ -208,6 +214,7 @@ if __name__ == '__main__':
         config = toml.load(str(CONFIG_FILE))
         print(f"Loaded {CONFIG_FILE.name}")
 
+        # TODO: remove 'tmpfsdir' from config and specify as script constant
         PID_FILE = Path(config['tmpfsdir']) / PID_FILE_NAME
 
         if len(sys.argv) < 2:
@@ -225,11 +232,16 @@ if __name__ == '__main__':
         elif command == 'start':
             if config['autostart'] is False and '-a' in sys.argv:
                 print("Automatic startup is disabled")
-                print("Enable with 'autostart=true' in config.toml")
+                print("Enable with 'autostart = true' in config.toml")
                 die(0)
 
             if config['BASE']['autoconfig'] is True:
-                config_ublox(config['BASE'], config['SERIAL'])
+                exitcode = config_ublox(config['BASE'], config['SERIAL'])
+                if exitcode != 0:
+                    print("uBlox configuration was not completed due to ubxtool errors")
+                    die(exitcode)
+            else:
+                print("uBlox auto-config is disabled")
 
             die(start_server(config['SERIAL'], config['NTRIPC']))
 
@@ -250,6 +262,7 @@ if __name__ == '__main__':
 
         die(0)
 
+    # CONSIDER: handle KeyboardInterrupt gracefully
     except Exception as e:
         print(f'{e.__class__.__name__}: {e}')
 
