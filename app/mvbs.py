@@ -82,10 +82,6 @@ def test(*args) -> int:
 
 
 def start_server(serial_config: dict, ntripc_config: dict) -> int:
-    if PID_FILE.exists():
-        print("NTRIP server is already running")
-        die(0)
-
     in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**serial_config)
     out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**ntripc_config)
 
@@ -107,10 +103,6 @@ def start_server(serial_config: dict, ntripc_config: dict) -> int:
 
 
 def stop_server() -> int:
-    if not PID_FILE.exists():
-        print("NTRIP server is not running")
-        die(0)
-
     print("Terminating NTRIP server... ")
     str2str_pid = PID_FILE.read_text().strip()
     result = run(f'kill -INT {str2str_pid}', capture_output=True, shell=True)
@@ -124,6 +116,22 @@ def stop_server() -> int:
         PID_FILE.unlink()
 
     return result.returncode
+
+
+def cleanup_server():
+    global str2str_process
+    if str2str_process and str2str_process.poll() is None:
+        print("Terminating 'str2str' process...")
+        str2str_process.terminate()
+        # Wait str2str to terminate - 3s should be by far enough
+        str2str_process.wait(3)
+        if str2str_process.poll() is None:
+            str2str_process.kill()
+    try:
+        PID_FILE.unlink()
+    except Exception:
+        pass
+    return str2str_process.returncode if str2str_process else 0
 
 
 def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
@@ -223,9 +231,16 @@ if __name__ == '__main__':
             die(test(config))
 
         if command == 'stop':
+            if not PID_FILE.exists():
+                print("NTRIP server is not running")
+                die(0)
             die(stop_server())
 
         elif command == 'start':
+            if PID_FILE.exists():
+                print("NTRIP server is already running")
+                die(0)
+
             if config['autostart'] is False and '-a' in sys.argv:
                 print("Automatic startup is disabled")
                 print("Enable with 'autostart = true' in config.toml")
@@ -260,17 +275,6 @@ if __name__ == '__main__':
 
     # CONSIDER: handle KeyboardInterrupt gracefully
     except Exception as e:
-        print(f'{e.__class__.__name__}: {e}')
-
-        if str2str_process and str2str_process.poll() is None:
-            print("Terminating 'str2str' process...")
-            str2str_process.terminate()
-            # Wait str2str to terminate - 3s should be by far enough
-            str2str_process.wait(3)
-            if str2str_process.poll() is None:
-                str2str_process.kill()
-        try:
-            PID_FILE.unlink()
-        except Exception:
-            pass
+        print(f'{e.__class__.__name__}: {e or "<No details>"}')
+        cleanup_server()
         die(1)
