@@ -4,19 +4,24 @@
 Minimal Viable Base Station
 
 Effectively is a wrapper around RTKLIB str2str application.
-Deploys NTRIP server that expects RTCM3.3 messages on serial port and transmits them
-    over serial port to an NTRIP Caster defined in configuration file.
-
-Configuration file 'config.toml' is expected in script location directory
-    and is used to control the behaviour of str2str utility as well as launcher itself.
-
+Script uses parameters from configuration file 'config.toml' (expected in script location directory)
+If script is launched automatically, provide '-a' argument.
 Available commands are shown when running script with no arguments.
 
-When executing in automatic mode, provide '-a' argument.
-In this case it will exit without launching NTRIP server if
-    'autostart' config parameter is set to 'false'.
-
+Commands:
+    • start
+        Configures uBlox Time mode (if BASE.autoconfig is true) using GPSD/ubxtool utility
+            and deploys NTRIP server using RTKLIB/str2str utility.
+        If time mode is set to anything other than 'Fixed', base station coordinates are ignored
+        NTRIP server expects RTCM3.3 messages on serial port and transmits them
+            over TCP/IP to an NTRIP Caster specified in configuration file.
+    • stop
+        Interrupts background NTRIP server process and exits
+    • state
+        Prints whether NTRIP server launched by this script previously
+            is running at the moment, stopped by 'stop' command or stopped/killed externally/itself
 """
+
 
 import sys
 from enum import Enum, Flag
@@ -30,12 +35,10 @@ from pathlib import Path
 from subprocess import run, Popen, DEVNULL, STDOUT
 
 
-# TODO: update script docstring
-
 # TODO: migrate to logging and make use of config['tracelevel']
 
 
-__version__ = "1.0dev2"
+__version__ = "1.1"
 
 PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT / 'config.toml'
@@ -74,9 +77,9 @@ class MLevel(FlagEnum):
     ALL   = 0b111
 
 
-def die(exitcode=0):
-    print(f"Exiting script ({exitcode})")
-    sys.exit(exitcode)
+def die(returncode=0):
+    print(f"Exiting script ({returncode})")
+    sys.exit(returncode)
 
 
 def test(*args) -> int:
