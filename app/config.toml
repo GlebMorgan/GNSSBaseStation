@@ -27,7 +27,11 @@ autoconfig = true
 level = 'RAM'
 # Time mode = 'Disabled' | 'SvIn' | 'Fixed'
 mode = 'Fixed'
-# Coordinates in WGS84, height in [m], decimal separator is dot
+# Minimum observation time [s]
+observe = 180
+# Required positional accuracy [mm]
+accuracy = 50_000
+# Coordinates in WGS84 [m], decimal separator - dot
 lat = 53.89878252
 lon = 27.44895374
 hgt = 303.882

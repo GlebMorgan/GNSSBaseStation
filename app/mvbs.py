@@ -207,6 +207,12 @@ def config_ublox(params: dict, serial_params: dict) -> int:
             'CFG-TMODE-HEIGHT': hgt,    'CFG-TMODE-HEIGHT_HP': hgt_hp,
         })
 
+    elif tmode is TMode.SVIN:
+        spec.update({
+            'CFG-TMODE-SVIN_MIN_DUR':   int(params['observe']),
+            'CFG-TMODE-SVIN_ACC_LIMIT': int(params['accuracy'])*10,
+        })
+
     level = params['level']
     if isinstance(level, int):
         level = MLevel(level)
