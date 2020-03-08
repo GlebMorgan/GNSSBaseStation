@@ -1,3 +1,4 @@
+name = 'odincova_dev'
 autostart = true
 # tracelevel is not used for now
 tracelevel = 'DEBUG'

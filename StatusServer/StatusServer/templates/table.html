@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" >
+
+    <head>
+        <meta charset="UTF-8">
+        <title>{{ title }}</title>
+        <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+        <link rel="icon" href="{% static 'icon.png' %}">
+        <meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; width=device-width;">
+    </head>
+
+    <body>
+
+        <div class="table-title">
+            <h3>{{ table_title }}</h3>
+        </div>
+
+        <table class="table-fill">
+
+            <thead>
+                <tr>
+                    <th class="text-left">Parameter</th>
+                    <th class="text-left">Value</th>
+                </tr>
+            </thead>
+
+            <tbody class="table-hover">
+                {% for item in data %}
+                    <tr>
+                        <td class="text-left">{{ item.name }}</td>
+                        <td class="text-left">{{ item.value }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </body>
+
+</html>

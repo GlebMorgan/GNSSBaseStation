@@ -7,12 +7,6 @@ from signal import SIGINT
 import serial
 
 
-# |date        |time      |in/out4x   |received    |rate   |streams   |status         |error_code
-# 2020/02/15   14:18:42   [EC---]     0 B          0 bps   (2)        connect error   (111)
-
-# statuses: E: error, -: Close, W: wait, C: connect, C: active
-
-
 START_BYTES = 0xb5, 0x62
 
 
