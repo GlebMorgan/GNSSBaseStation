@@ -14,10 +14,9 @@ flowcontrol = 'off'
 
 [NTRIPC]
 # NTRIP Caster domain name or IP address string
-domain = 'odincova.ddns.net'
+domain = '192.168.100.16'
 port = 2101
-mountpoint = 'TST1'
-username = 'SERGE'
+mountpoint = 'LENOVO1'
 password = '123'
 str = ''
 

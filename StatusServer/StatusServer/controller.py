@@ -83,7 +83,6 @@ def get_status():
         'NTRIP caster':         ntripc_config['domain'],
         'Target port':          ntripc_config['port'],
         'Mountpoint':           ntripc_config['mountpoint'],
-        'Username':             ntripc_config['username'],
         'Base station mode':    config['BASE']['mode'],
     }
 

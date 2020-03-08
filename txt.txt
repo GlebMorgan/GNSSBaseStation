@@ -73,6 +73,9 @@ Another approach is to use diff files:
     <later, on another machine>
     git apply file.diff
 
+Other approaches - share in-progress code via GitHub
+https://stackoverflow.com/questions/1550378/is-it-possible-to-push-a-git-stash-to-a-remote-repository
+https://superuser.com/questions/409228/how-can-i-share-a-git-stash/817350#817350
 
 
 |date        |time      |in/out4x   |received    |rate   |streams   |status         |error_code
