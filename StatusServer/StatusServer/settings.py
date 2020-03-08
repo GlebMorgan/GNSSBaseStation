@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '&3*+#7#ljd!+u#b=wb7$vgfna0nxjq^3*4a^%4y7za2ar26b#n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # TODO: get IP automatically from system config
 ALLOWED_HOSTS = ['192.168.100.13']
@@ -119,5 +119,5 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'StatusServer', 'static')
 STATIC_URL = '/static/'
