@@ -1,24 +1,24 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100);
 
 body {
-  background-color: #3e94ec;
+  background-color: #6c8ccc;
   font-family: "Roboto", helvetica, arial, sans-serif;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 300;
   text-rendering: optimizeLegibility;
 }
 
 div.table-title {
    display: block;
   margin: auto;
-  max-width: 600px;
+  max-width: 500px;
   padding:5px;
   width: 100%;
 }
 
 .table-title h3 {
    color: #fafafa;
-   font-size: 30px;
+   font-size: 24px;
    font-weight: 400;
    font-style:normal;
    font-family: "Roboto", helvetica, arial, sans-serif;
@@ -35,7 +35,7 @@ div.table-title {
   border-collapse: collapse;
   height: 320px;
   margin: auto;
-  max-width: 600px;
+  max-width: 500px;
   padding:5px;
   width: 100%;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
@@ -43,13 +43,13 @@ div.table-title {
 }
  
 th {
-  color:#D5DDE5;;
-  background:#1b1e24;
-  border-bottom:4px solid #9ea7af;
-  border-right: 1px solid #343a45;
-  font-size:23px;
-  font-weight: 100;
-  padding:24px;
+  color:#FFFFFF;;
+  background:#505060;
+  border-bottom: 3px solid #303030;
+  border-right: 1px solid #303030;
+  font-size: 20px;
+  font-weight: 300;
+  padding: 10px 20px 10px 20px;
   text-align:left;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
   vertical-align:middle;
@@ -65,18 +65,16 @@ th:last-child {
 }
   
 tr {
-  border-top: 1px solid #C1C3D1;
-  border-bottom-: 1px solid #C1C3D1;
-  color:#666B85;
+  border-top: 1px solid #A0A0A0;
+  border-bottom-: 1px solid #A0A0A0;
+  color:#202020;
   font-size:16px;
   font-weight:normal;
   text-shadow: 0 1px 1px rgba(256, 256, 256, 0.1);
 }
  
 tr:hover td {
-  background:#4E5066;
-  color:#FFFFFF;
-  border-top: 1px solid #22262e;
+  background:#C0C0C0;
 }
  
 tr:first-child {
@@ -86,32 +84,32 @@ tr:first-child {
 tr:last-child {
   border-bottom:none;
 }
- 
+
 tr:nth-child(odd) td {
-  background:#EBEBEB;
+  background:#F0F0F0;
 }
- 
+
 tr:nth-child(odd):hover td {
-  background:#4E5066;
+  background:#C0C0C0;
 }
 
 tr:last-child td:first-child {
   border-bottom-left-radius:3px;
 }
- 
+
 tr:last-child td:last-child {
   border-bottom-right-radius:3px;
 }
  
 td {
   background:#FFFFFF;
-  padding:20px;
+  padding:10px 20px 10px 20px;
   text-align:left;
   vertical-align:middle;
-  font-weight:300;
-  font-size:18px;
+  font-weight: 300;
+  font-size: 16px;
   text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
-  border-right: 1px solid #C1C3D1;
+  border-right: 1px solid #A0A0A0;
 }
 
 td:last-child {
