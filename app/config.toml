@@ -12,6 +12,10 @@ parity = 'N'
 stopbits = 1
 flowcontrol = 'off'
 
+[NTRIPS]
+anchor = 1005
+inject = [1008]
+
 [NTRIPC]
 # NTRIP Caster domain name or IP address string
 domain = '192.168.100.16'

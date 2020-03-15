@@ -100,18 +100,25 @@ def test(*args) -> int:
     return 0
 
 
-def start_server(serial_config: dict, ntripc_config: dict, inject: Collection) -> int:
+def start_server(serial_config: dict, server_config: dict, caster_config: dict) -> int:
 
     in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**serial_config)
-    out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**ntripc_config)
+    out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**caster_config)
+    inject = server_config['inject']
 
     if inject:
+        if isinstance(inject, int):
+            inject = (str(inject),)
+        else:
+            inject = tuple(str(msgid) for msgid in server_config['inject'])
+
         pipe_output, pipe_input = pipe2(O_NONBLOCK)
         str2str = f'{STR2STR}', '-out', f'ntrips://{out_spec}'
         str2str_input = pipe_output
         rtcm_proxy = 'python', f'{RTCM_PROXY}', '-in', f'serial://{in_spec}', \
-                     '-a', '1005', '-m', *inject, '-l', str(RTCM_PROXY_LOG)
+                     '-a', str(server_config['anchor']), '-m', *inject, '-l', str(RTCM_PROXY_LOG)
         Popen(rtcm_proxy, encoding='utf-8', stdout=pipe_input)
+
     else:
         str2str = f'{STR2STR}', '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
         str2str_input = DEVNULL
@@ -293,19 +300,7 @@ if __name__ == '__main__':
                 print("uBlox auto-config is disabled")
                 print("Could be enabled with 'BASE.autoconfig = true' in config.toml")
 
-            if config['inject']:
-                msg_ids = config['inject']
-                if isinstance(msg_ids, int):
-                    msg_ids = [msg_ids]
-                elif not isinstance(msg_ids, Iterable):
-                    raise ValueError("Invalid RTCM messages specification in config.toml")
-                for item in msg_ids:
-                    if not isinstance(item, int):
-                        raise ValueError(f"Invalid rtcm message id '{item}' in config.toml")
-            else:
-                msg_ids = []
-
-            die(start_server(config['SERIAL'], config['NTRIPC'], tuple(str(item) for item in msg_ids)))
+            die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
 
         elif command == 'state':
             if PID_FILE.exists():
