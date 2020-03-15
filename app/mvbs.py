@@ -21,14 +21,14 @@ Commands:
         Prints whether NTRIP server launched by this script previously
             is running at the moment, stopped by 'stop' command or stopped/killed externally/itself
 """
-
-
+import errno
 import sys
+from os import mkfifo, pipe2, fdopen, O_NONBLOCK
 from enum import Enum, Flag
 from functools import reduce
 from itertools import chain, repeat
 from operator import or_ as bitwise_or
-from typing import Tuple, Dict, Iterable
+from typing import Tuple, Dict, Iterable, BinaryIO, Union, Collection
 
 import toml
 from pathlib import Path
@@ -41,10 +41,12 @@ from subprocess import run, Popen, DEVNULL, STDOUT
 __version__ = "1.1"
 
 PROJECT = Path('/home/pi/app')
-CONFIG_FILE = PROJECT / 'config.toml'
-STR2STR = PROJECT / 'str2str'
-STR2STR_LOG = PROJECT / 'logs' / 'str2str.log'
-UBXTOOL = Path(PROJECT) / 'ubxtool.py'
+CONFIG_FILE = PROJECT/'config.toml'
+STR2STR = PROJECT/'str2str'
+STR2STR_LOG = PROJECT/'logs'/f'{STR2STR.stem}.log'
+UBXTOOL = PROJECT/'ubxtool.py'
+RTCM_PROXY = PROJECT/'rtcm_proxy.py'
+RTCM_PROXY_LOG = PROJECT/'logs'/f'{RTCM_PROXY.stem}.log'
 PID_FILE = Path('/run/user/bs/ntrips.pid')
 
 str2str_process = None
@@ -56,6 +58,15 @@ Commands:
     start - start NTRIP server with parameters specified in config.toml
     stop  - terminate NTRIP server
 """
+
+
+def makefifo(*args, exist_ok=True, **kwargs):
+    # not used currently
+    try:
+        return mkfifo(*args, **kwargs)
+    except OSError as err:
+        if err.errno != errno.EEXIST and exist_ok is False:
+            raise
 
 
 class FlagEnum(Flag):
@@ -89,20 +100,29 @@ def test(*args) -> int:
     return 0
 
 
-def start_server(serial_config: dict, ntripc_config: dict) -> int:
+def start_server(serial_config: dict, ntripc_config: dict, inject: Collection) -> int:
+
     in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**serial_config)
     out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**ntripc_config)
 
-    str2str_command = str(STR2STR), '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
+    if inject:
+        pipe_output, pipe_input = pipe2(O_NONBLOCK)
+        str2str = f'{STR2STR}', '-out', f'ntrips://{out_spec}'
+        str2str_input = pipe_output
+        rtcm_proxy = 'python', f'{RTCM_PROXY}', '-in', f'serial://{in_spec}', \
+                     '-a', '1005', '-m', *inject, '-l', str(RTCM_PROXY_LOG)
+        Popen(rtcm_proxy, encoding='utf-8', stdout=pipe_input)
+    else:
+        str2str = f'{STR2STR}', '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
+        str2str_input = DEVNULL
 
     print("Starting NTRIP server...")
-    print("Command: " + ' '.join(str2str_command))
+    print(f"Command: {' '.join(str2str)}")
 
     global str2str_process
-
     PID_FILE.touch()
-    str2str_process = Popen(str2str_command, encoding='utf-8',
-                            stdin=DEVNULL, stdout=STR2STR_LOG.open('w'), stderr=STDOUT)
+    str2str_process = Popen(str2str, encoding='utf-8', stdin=str2str_input,
+                            stdout=STR2STR_LOG.open('w'), stderr=STDOUT)
     PID_FILE.write_text(str(str2str_process.pid))
 
     print("NTRIP server process spawned")
@@ -121,7 +141,7 @@ def stop_server() -> int:
         print("Failed to terminate NTRIP server process")
     else:
         print(f"Terminated process #{str2str_pid}")
-        PID_FILE.unlink()
+    if PID_FILE.exists(): PID_FILE.unlink()
 
     return result.returncode
 
@@ -169,7 +189,7 @@ def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
     ubxtool_process = run(valset, text=True, capture_output=True)
     # Proxying stdout as stdout handle inheritance induces race condition and output misalignment
     print('\n' + ubxtool_process.stdout.strip('\n') + '\n')
-    print(f"ubxtool: exitcode {ubxtool_process.returncode}")
+    print(f"ubxtool: exitcode {ubxtool_process.returncode}", end='\n')
 
     return ubxtool_process.returncode
 
@@ -224,8 +244,10 @@ def config_ublox(params: dict, serial_params: dict) -> int:
                 raise ValueError(f"Invalid memory level '{item}' in config.toml - "
                                  f"expected within [{', '.join(MLevel.__members__)}]")
         level = reduce(bitwise_or, (MLevel[item.upper()] for item in level))
-    print(f"Save config to memory levels: {', '.join(level.flags)}")
+    else:
+        raise ValueError("Invalid memory levels specification in config.toml")
 
+    print(f"Save config to memory levels: {', '.join(level.flags)}")
     return ubx_valset(spec, baudrate=serial_params['baudrate'], memlevel=level.value)
 
 
@@ -259,7 +281,7 @@ if __name__ == '__main__':
 
             if config['autostart'] is False and '-a' in sys.argv:
                 print("Automatic startup is disabled")
-                print("Enable with 'autostart = true' in config.toml")
+                print("Could be enabled with 'autostart = true' in config.toml")
                 die(0)
 
             if config['BASE']['autoconfig'] is True:
@@ -269,8 +291,21 @@ if __name__ == '__main__':
                     die(exitcode)
             else:
                 print("uBlox auto-config is disabled")
+                print("Could be enabled with 'BASE.autoconfig = true' in config.toml")
 
-            die(start_server(config['SERIAL'], config['NTRIPC']))
+            if config['inject']:
+                msg_ids = config['inject']
+                if isinstance(msg_ids, int):
+                    msg_ids = [msg_ids]
+                elif not isinstance(msg_ids, Iterable):
+                    raise ValueError("Invalid RTCM messages specification in config.toml")
+                for item in msg_ids:
+                    if not isinstance(item, int):
+                        raise ValueError(f"Invalid rtcm message id '{item}' in config.toml")
+            else:
+                msg_ids = []
+
+            die(start_server(config['SERIAL'], config['NTRIPC'], tuple(str(item) for item in msg_ids)))
 
         elif command == 'state':
             if PID_FILE.exists():
