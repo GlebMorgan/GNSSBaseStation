@@ -38,7 +38,7 @@ from subprocess import run, Popen, DEVNULL, STDOUT
 # TODO: migrate to logging and make use of config['tracelevel']
 
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT/'config.toml'
