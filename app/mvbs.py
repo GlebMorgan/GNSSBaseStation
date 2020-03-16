@@ -117,6 +117,10 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict) 
         str2str_input = pipe_output
         rtcm_proxy = 'python', f'{RTCM_PROXY}', '-in', f'serial://{in_spec}', \
                      '-a', str(server_config['anchor']), '-m', *inject, '-l', str(RTCM_PROXY_LOG)
+
+        print("Starting RTCM proxy...")
+        print(f"Command: {' '.join(rtcm_proxy)}")
+
         Popen(rtcm_proxy, encoding='utf-8', stdout=pipe_input)
 
     else:

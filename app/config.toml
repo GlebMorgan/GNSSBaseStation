@@ -1,7 +1,6 @@
 name = 'odincova_dev'
 tracelevel = 'DEBUG'
 autostart = true
-inject = 1008
 
 [SERIAL]
 # Name of serial device in /dev
