@@ -17,9 +17,9 @@ inject = [1008]
 
 [NTRIPC]
 # NTRIP Caster domain name or IP address string
-domain = '192.168.100.16'
-port = 2101
-mountpoint = 'LENOVO1'
+domain = '192.168.100.19'
+port = 5003
+mountpoint = 'TST1'
 password = '123'
 str = ''
 

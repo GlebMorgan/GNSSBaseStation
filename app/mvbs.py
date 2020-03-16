@@ -37,6 +37,8 @@ from subprocess import run, Popen, DEVNULL, STDOUT
 
 # TODO: migrate to logging and make use of config['tracelevel']
 
+# TODO: update mvbs docstring (incorporate proxying functionality)
+
 
 __version__ = "1.2"
 

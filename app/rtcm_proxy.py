@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-
-from pathlib import Path
-from argparse import ArgumentParser, ArgumentError
-from serial import Serial
 import sys
+from argparse import ArgumentParser
+from itertools import count
+from pathlib import Path
+
+from serial import Serial
 
 
 PREAMB = b'\xD3'
@@ -24,7 +25,7 @@ parser.add_argument('-in', '--input-stream',
 
 parser.add_argument('-out', '--output-stream',
                     dest='output', metavar='OUTPUT_STREAM',
-                    help="Output RTCM stream (default: <stdout>)."
+                    help="Output RTCM stream (default: <stdout>). "
                          "Supported stream format: file://filepath")
 
 parser.add_argument('-a', '--anchor', required=True, dest='anchor', type=int,
@@ -33,6 +34,11 @@ parser.add_argument('-a', '--anchor', required=True, dest='anchor', type=int,
 
 parser.add_argument('-m', '--messages', nargs='+', default=[], dest='msgs', metavar='MSG',
                     help="RTCM message IDs to inject after 'anchor' message")
+
+parser.add_argument('-i', '--interval', default=1, dest='interval', type=int,
+                    help="Interval for injected messages relative to anchor. "
+                         "Specified messages will be injected after every N-th "
+                         "anchor message occurrence (default: %(default)s)")
 
 parser.add_argument('-l', '--log-file', dest='log',
                     help="File path for error output")
@@ -96,9 +102,11 @@ try:
 
     send = output.write
     flush = output.flush
+    anchor = args.anchor
+    interval = args.interval
 
     with source, output:
-        while True:
+        for i in count():
             while source.read(len(PREAMB)) != PREAMB: pass
             datalen = source.read(2)
             data = source.read(int.from_bytes(datalen, 'big', signed=False))
@@ -109,7 +117,7 @@ try:
             send(PREAMB + datalen + data + crc24)
             flush()
 
-            if msgid == args.anchor:
+            if msgid == anchor and i % interval == 0:
                 for msg in msgs:
                     send(msg)
                     flush()
