@@ -20,7 +20,8 @@ try:
     for command in commands:
         check_call(command, shell=True)
 
-    input("\nDONE")
+    print("\nDONE")
+    check_call('pause >nul', shell=True)
     exit(0)
 
 except Exception as e:

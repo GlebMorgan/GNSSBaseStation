@@ -23,12 +23,12 @@ Commands:
 """
 import errno
 import sys
-from os import mkfifo, pipe2, fdopen, O_NONBLOCK
+from os import mkfifo, pipe2, O_NONBLOCK
 from enum import Enum, Flag
 from functools import reduce
 from itertools import chain, repeat
 from operator import or_ as bitwise_or
-from typing import Tuple, Dict, Iterable, BinaryIO, Union, Collection
+from typing import Tuple, Dict, Iterable
 
 import toml
 from pathlib import Path

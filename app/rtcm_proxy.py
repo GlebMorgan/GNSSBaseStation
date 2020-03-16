@@ -8,7 +8,8 @@ import sys
 
 PREAMB = b'\xD3'
 RTCM = {
-    1008: b'\xD3\x00\x06\x3F\x00\x00\x00\x00\x00\x99\x25\xCA'
+    '1008_empty': b'\xD3\x00\x06\x3F\x00\x00\x00\x00\x00\x99\x25\xCA',
+    '1008': b'\xD3\x00\x14\x63\x00\x27\x0EGPPNULLANTENNA\x00\x00\xC4\x84\x19'
 }
 
 
@@ -84,9 +85,7 @@ try:
 
     argument = 'argument -m/--messages'
     try:
-        msgs = tuple(RTCM[int(msgid)] for msgid in args.msgs)
-    except (TypeError, ValueError) as e:
-        parser.error(f"{argument}: encountered invalid RTCM message id: {e}")
+        msgs = tuple(RTCM[msgid] for msgid in args.msgs)
     except KeyError as e:
         parser.error(f"{argument}: encountered unsupported RTCM message id: {e}")
 
@@ -97,14 +96,6 @@ try:
 
     send = output.write
     flush = output.flush
-    #
-    # print('input: ', args.input)
-    # print('output: ', args.output)
-    # print('anchor: ', args.anchor)
-    # print('msgs', args.msgs)
-    # print('log: ', args.log)
-    # input()
-    # exit(0)
 
     with source, output:
         while True:
