@@ -311,6 +311,13 @@ if __name__ == '__main__':
 
             die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
 
+        elif command == 'restart':
+            if not PID_FILE.exists():
+                print("NTRIP server is not running")
+                die(0)
+            stop_server()
+            die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
+
         elif command == 'state':
             if PID_FILE.exists():
                 if run('ps -C str2str', shell=True, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
