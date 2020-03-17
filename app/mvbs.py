@@ -27,6 +27,7 @@ from os import mkfifo, pipe2, O_NONBLOCK
 from enum import Enum, Flag
 from functools import reduce
 from itertools import chain, repeat
+from collections import defaultdict as dd
 from operator import or_ as bitwise_or
 from typing import Tuple, Dict, Iterable
 
@@ -117,8 +118,8 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict) 
         pipe_output, pipe_input = pipe2(O_NONBLOCK)
         str2str = f'{STR2STR}', '-out', f'ntrips://{out_spec}'
         str2str_input = pipe_output
-        rtcm_proxy = 'python', f'{RTCM_PROXY}', '-in', f'serial://{in_spec}', \
-                     '-a', str(server_config['anchor']), '-m', *inject, '-l', str(RTCM_PROXY_LOG)
+        rtcm_proxy = 'python', f'{RTCM_PROXY}', '-in', f'serial://{in_spec}', '-a', f'{server_config["anchor"]}', \
+                     '-m', *inject, '-i', f'{server_config["interval"]}', '-l', str(RTCM_PROXY_LOG)
 
         print("Starting RTCM proxy...")
         print(f"Command: {' '.join(rtcm_proxy)}")
@@ -154,7 +155,9 @@ def stop_server() -> int:
         print("Failed to terminate NTRIP server process")
     else:
         print(f"Terminated process #{str2str_pid}")
-    if PID_FILE.exists(): PID_FILE.unlink()
+
+    if PID_FILE.exists():
+        PID_FILE.unlink()
 
     return result.returncode
 
@@ -269,7 +272,7 @@ if __name__ == '__main__':
         print(f"Environment: '{PROJECT}'")
         print(f"Script: '{__file__}'")
 
-        config = toml.load(str(CONFIG_FILE))
+        config = dd(lambda: None, toml.load(str(CONFIG_FILE)))
         print(f"Loaded {CONFIG_FILE.name}")
 
         if len(sys.argv) < 2:

@@ -12,8 +12,9 @@ stopbits = 1
 flowcontrol = 'off'
 
 [NTRIPS]
-anchor = 1005
 inject = [1008]
+anchor = 1005
+interval = 1
 
 [NTRIPC]
 # NTRIP Caster domain name or IP address string
