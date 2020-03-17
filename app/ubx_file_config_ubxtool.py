@@ -11,8 +11,7 @@ import toml
 
 
 PROJECT = Path('/home/pi/app')
-CONFIG_FILE = PROJECT / 'config.toml'
-PID_FILE_NAME = 'ntrips.pid'
+PID_FILE = Path('/run/user/bs/ntrips.pid')
 
 
 def get_sections_itertools(file: Path) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
@@ -66,10 +65,6 @@ def prepend(prefix, iterable):
 
 if __name__ == '__main__':
 
-    config = toml.load(str(CONFIG_FILE))
-    print(f"Loaded {CONFIG_FILE.name}")
-
-    PID_FILE = Path(config['tmpfsdir']) / PID_FILE_NAME
     if PID_FILE.exists():
         print("Error: NTRIP server is running. Stop it with 'mvbs stop' and run the script once again")
         exit(1)

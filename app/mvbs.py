@@ -92,7 +92,7 @@ class MLevel(FlagEnum):
 
 
 def die(returncode=0):
-    print(f"Exiting script ({returncode})")
+    print(f"Exiting ({returncode})")
     sys.exit(returncode)
 
 
@@ -267,6 +267,12 @@ def config_ublox(params: dict, serial_params: dict) -> int:
     return ubx_valset(spec, baudrate=serial_params['baudrate'], memlevel=level.value)
 
 
+def reset_ublox():
+    # ubxtool -p CLEAR ...
+    # ubx_file_config
+    return NotImplemented
+
+
 if __name__ == '__main__':
     try:
         print(f"Environment: '{PROJECT}'")
@@ -316,7 +322,26 @@ if __name__ == '__main__':
                 print("NTRIP server is not running")
                 die(0)
             stop_server()
-            die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
+            exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
+            print(f"NTRIP server restart {'failed' if exitcode else 'success'}")
+            die(exitcode)
+
+        elif command == 'reset':
+            try:
+                ublox_config_file = Path(sys.argv[2])
+            except IndexError:
+                print("Error: uCenter configuration file is not provided")
+                die(1)
+            if not ublox_config_file.exists():
+                print(f"File '{ublox_config_file.name}' does not exist")
+                die(1)
+
+            if PID_FILE.exists():
+                stop_server()
+
+            exitcode = reset_ublox()
+            print(f"Receiver reset {'failed' if exitcode else 'success'}")
+            exit(exitcode)
 
         elif command == 'state':
             if PID_FILE.exists():
