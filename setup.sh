@@ -17,7 +17,8 @@ sudo apt -y full-upgrade
 sudo bash -c "echo -e '\nenable_uart=1' >> /boot/config.txt"
 
 # Disable serial console output
-sudo bash -c "echo 'console=tty1 root=PARTUUID=6c586e13-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait' > /boot/cmdline.txt"
+sudo bash -c "echo 'console=tty1 root=PARTUUID=6c586e13-02 rootfstype=ext4 \\
+elevator=deadline fsck.repair=yes rootwait' > /boot/cmdline.txt"
 
 # Add 'l' and 'll' aliases to bash
 echo "
@@ -114,3 +115,24 @@ cd ..
 
 mv gpsd-master/gps .
 sudo rm -r gpsd-master
+
+#########################################################################
+
+echo VIM
+
+# Install vim
+sudo apt-get -y install vim
+
+# Install vim-plug
+sudo apt-get -y install git
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+# Add plugins: vim-toml
+echo "call plug#begin('~/.vim/plugged')
+Plug 'cespare/vim-toml'
+call plug#end()
+" > ~/.vimrc
+
+# Install plugins
+vim +PlugInstall +qall

@@ -10,7 +10,7 @@ from serial import Serial
 PREAMB = b'\xD3'
 RTCM = {
     '1008_empty': b'\xD3\x00\x06\x3F\x00\x00\x00\x00\x00\x99\x25\xCA',
-    '1008': b'\xD3\x00\x14\x3F\x00\x27\x0EGPPNULLANTENNA\x00\x00\xC4\x84\x19'
+    '1008': b'\xD3\x00\x14\x3F\x00\x00\x0EGPPNULLANTENNA\x00\x00\x72\xD4\xE7',
 }
 
 
@@ -18,14 +18,14 @@ parser = ArgumentParser(description='RTCM3 stream proxy')
 
 parser.add_argument('-in', '--input-stream',
                     dest='input', metavar='INPUT_STREAM',
-                    help="Input RTCM stream (default: <stdin>). "
+                    help="input RTCM stream (default: <stdin>). "
                          "Supported stream formats: "
                          "serial://port:baudrate:bytesize:parity:stopbits, "
                          "file://filepath")
 
 parser.add_argument('-out', '--output-stream',
                     dest='output', metavar='OUTPUT_STREAM',
-                    help="Output RTCM stream (default: <stdout>). "
+                    help="output RTCM stream (default: <stdout>). "
                          "Supported stream format: file://filepath")
 
 parser.add_argument('-a', '--anchor', required=True, dest='anchor', type=int,
@@ -36,12 +36,12 @@ parser.add_argument('-m', '--messages', nargs='+', default=[], dest='msgs', meta
                     help="RTCM message IDs to inject after 'anchor' message")
 
 parser.add_argument('-i', '--interval', default=1, dest='interval', type=int,
-                    help="Interval for injected messages relative to anchor. "
+                    help="interval for injected messages relative to anchor. "
                          "Specified messages will be injected after every N-th "
                          "anchor message occurrence (default: %(default)s)")
 
-parser.add_argument('-l', '--log-file', dest='log',
-                    help="File path for error output")
+parser.add_argument('-l', '--log-file', dest='log', type=Path,
+                    help="file path for error output")
 
 
 try:
@@ -96,7 +96,7 @@ try:
         parser.error(f"{argument}: encountered unsupported RTCM message id: {e}")
 
     argument = 'argument -l/--log-file'
-    logfile = Path(args.log).resolve()
+    logfile = args.log.expanduser().resolve()
     if not logfile.parent.is_dir():
         parser.error(f"{argument}: invalid path: '{args.log}'")
 

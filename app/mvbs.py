@@ -124,7 +124,10 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict) 
         print("Starting RTCM proxy...")
         print(f"Command: {' '.join(rtcm_proxy)}")
 
-        Popen(rtcm_proxy, encoding='utf-8', stdout=pipe_input)
+        rtcm_proxy_process = Popen(rtcm_proxy, encoding='utf-8', stdout=pipe_input)
+        if rtcm_proxy_process.returncode:
+            print("Failed to start RTCM proxy")  # TODO
+            die(rtcm_proxy_process.returncode)
 
     else:
         str2str = f'{STR2STR}', '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
@@ -320,8 +323,9 @@ if __name__ == '__main__':
         elif command == 'restart':
             if not PID_FILE.exists():
                 print("NTRIP server is not running")
-                die(0)
-            stop_server()
+            else:
+                stop_server()
+
             exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
             print(f"NTRIP server restart {'failed' if exitcode else 'success'}")
             die(exitcode)

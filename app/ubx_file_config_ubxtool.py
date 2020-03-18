@@ -1,17 +1,38 @@
 #!/usr/bin/env python3
-
-from itertools import takewhile, dropwhile, islice
+import sys
+from argparse import ArgumentParser
+from enum import Flag
+from itertools import takewhile, dropwhile, islice, chain, repeat
 from math import ceil
 from pathlib import Path
 from subprocess import run
 from sys import argv
-from typing import Tuple, List, Collection
+from typing import Tuple, List, Collection, Iterable
 
 import toml
 
 
 PROJECT = Path('/home/pi/app')
 PID_FILE = Path('/run/user/bs/ntrips.pid')
+
+
+class FlagEnum(Flag):
+    @property
+    def flags(self) -> list:
+        return Flag.__str__(self)[self.__class__.__name__.__len__()+1:].split('|')
+
+
+class MemoryLevel(FlagEnum):
+    RAM   = 1 << 0
+    BBR   = 1 << 1
+    FLASH = 1 << 2
+    ALL   = 0b111
+
+
+class DeviceMask(FlagEnum):
+    BBR   = 1 << 0
+    FLASH = 1 << 1
+    ALL   = 0b11
 
 
 def get_sections_itertools(file: Path) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
@@ -26,15 +47,16 @@ def get_sections_itertools(file: Path) -> Tuple[Tuple[str, ...], Tuple[str, ...]
     return del_items, set_items
 
 
-def get_sections(file: Path) -> Tuple[List[tuple], List[tuple]]:
+def get_sections(data: Iterable[str]) -> Tuple[List[tuple], List[tuple]]:
     """
-    Split 'file' to [del] and [set] sections
+    Split 'data' to [del] and [set] sections
         and return tuple of 2 lists containing (key, value) pairs
     """
+
     del_items = []
     set_items = []
     target = []
-    for line in file.open():
+    for line in data:
         line = line.strip()
         if line == '[del]':
             target = del_items
@@ -57,26 +79,58 @@ def chunks(data: Collection, volume: int, optimize=True) -> tuple:
         chunk = tuple(islice(iterator, volume))
 
 
-def prepend(prefix, iterable):
-    for item in iterable:
-        yield prefix
-        yield item
-
-
 if __name__ == '__main__':
 
+    # 'python', 'ubxtool.py', '-f', '/dev/serial0', '-s', '115200', '-w', '0.5'
+
+    parser = ArgumentParser(description='Configure uBlox receiver via ubxtool utility')
+
+    parser.add_argument('-d', '--device', required=True,
+                        help="target device path")
+
+    parser.add_argument('-b', '--baudrate', required=True,
+                        help="baudrate for serial output stream")
+
+    parser.add_argument('-l', '--level', nargs='+', default='RAM',
+                        help="memory level for configuration ({})"
+                        .format((', '.join(MemoryLevel.__members__))))
+
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument('-r', '--reset', nargs='?', metavar='LEVEL', const=['ALL'],
+                       help="reset device configuration on specified memory level ({}) "
+                       .format((' | '.join(DeviceMask.__members__))))
+
+    group.add_argument('-f', '--configfile', type=Path,
+                       help="uCenter Gen9 configuration file input")
+
+    group.add_argument('-i', '--items', nargs='+', default=[],
+                       dest='configitems', metavar='ITEM,VALUE',
+                       help="configuration parameters for VALSET command")
+
+    # -d    device     (-f)
+    # -b    baudrate   (-s)
+    # -f    file input         exclusive group
+    # -i    items      (-z)    exclusive group
+    # -l    level      (-l)
+    # -r    reset              exclusive group
+
+    args = parser.parse_args()
+
+    print(*(f'{name}: {value}' for name, value in vars(args).items()), sep='\n')
+    exit(0)
+
     if PID_FILE.exists():
-        print("Error: NTRIP server is running. Stop it with 'mvbs stop' and run the script once again")
+        print("Error: NTRIP server is running. Could be stopped with 'mvbs stop'")
         exit(1)
 
-    if len(argv) < 2:
-        print("Error: uCenter config file path should be provided as an argument")
-        exit(1)
+    UBX_CONFIG_FILE: Path = args.configfile.expanduser().resolve()
+    if not UBX_CONFIG_FILE.exists():
+        parser.error(f"File {UBX_CONFIG_FILE.name} does not exist")
 
-    UBX_CONFIG_FILE = Path(argv[1]).resolve().absolute()
     VALSET = ['python', 'ubxtool.py', '-f', '/dev/serial0', '-s', '115200', '-w', '0.5']
 
-    to_del, to_set = get_sections(UBX_CONFIG_FILE)
+    to_del, to_set = get_sections(UBX_CONFIG_FILE.read_text())
 
     if to_del:
         print('Config items deletion is not supported')
@@ -89,7 +143,7 @@ if __name__ == '__main__':
         for key, val in items:
             spec_pairs.append(f"{key},{int(val, 16)}")
 
-        VALSET.extend(prepend('-z', spec_pairs))
+        VALSET.extend(chain(*zip(repeat('-z'), spec_pairs)))
 
         print("Command: " + '\n-z'.join(' '.join(VALSET).split('-z')))
 
