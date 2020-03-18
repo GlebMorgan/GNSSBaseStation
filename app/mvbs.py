@@ -314,9 +314,11 @@ if __name__ == '__main__':
         elif command == 'restart':
             if not PID_FILE.exists():
                 print("NTRIP server is not running")
-                die(0)
-            stop_server()
-            die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
+            else:
+                stop_server()
+            exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
+            print(f"NTRIP server restart {'failed' if exitcode else 'success'}")
+            die(exitcode)
 
         elif command == 'state':
             if PID_FILE.exists():
