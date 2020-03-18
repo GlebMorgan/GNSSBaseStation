@@ -18,10 +18,10 @@ interval = 1
 
 [NTRIPC]
 # NTRIP Caster domain name or IP address string
-domain = '192.168.100.19'
-port = 5003
+domain = 'RTK2go.com'
+port = 2101
 mountpoint = 'TST1'
-password = '123'
+password = 'shadow12'
 str = ''
 
 [BASE]
