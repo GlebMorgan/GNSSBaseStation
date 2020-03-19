@@ -194,9 +194,9 @@ def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
     return coord, coord_hp
 
 
-def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
+def ubx_valset(spec: Dict[str, int], *, baudrate: int, memlevel: int) -> int:
     valset = [
-        'python', str(UBXTOOL),
+        'python', f'{UBXTOOL}',
         '-f', '/dev/serial0', '-s', str(baudrate),
         '-w', '0.5', '-l', str(memlevel)
     ]
