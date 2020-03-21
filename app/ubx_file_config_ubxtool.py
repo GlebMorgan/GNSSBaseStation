@@ -113,11 +113,12 @@ def ubx_valset(*items: Tuple[str, str], device: str, baud: int, level: MemoryLev
 
     returncode = ubxtool_call(valset)
 
+    memlevel = ', '.join(level.flags)
+    subject = f"config item {'='.join(items[0])}" if len(items) == 1 else f"{len(items)} config items"
     if returncode != 0:
-        subject = f"item {'='.join(items[0])}" if len(items) == 1 else f"{len(items)} items"
-        raise UbxtoolError(f"Failed to send {subject} to memory level {level.name} over {device}:{baud}", returncode)
+        raise UbxtoolError(f"Failed to send {subject} to memory level {memlevel} over {device}:{baud}", returncode)
     else:
-        print(f"Sent {len(items)} config item(s) to {level.name} level(s)")
+        print(f"Sent {subject} to {memlevel} level(s)")
 
 
 def ubx_reset(device: str, baud: int, timeout: float):
@@ -224,7 +225,8 @@ if __name__ == '__main__':
             items = tuple(item.split('=') for item in args.configitems)
 
             print()
-            print(f"Sending {len(items)} configuration item(s) to {args.device} at {level.name} memory level(s)...")
+            print("Sending {count} configuration item(s) to {device} at {level} memory level(s)..."
+                  .format(count=len(items), device=args.device, level=', '.join(level.flags)))
             ubx_valset(*items, device=args.device, baud=args.baudrate, level=level)
 
         elif args.reset:
