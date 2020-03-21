@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 from argparse import ArgumentParser
 from enum import Flag
 from functools import reduce
@@ -96,10 +97,10 @@ def chunks(data: Collection, volume: int, optimize=True) -> tuple:
 
 
 def ubxtool_call(command):
-    print(f"ubxtool args: {' '.join(command[:10] + ['...'] if len(command) > 10 else command)}")
+    print(f"Ubxtool args: {' '.join(command[:10] + ['...'] if len(command) > 10 else command)}")
+    sys.stdout.flush()
     ubxtool_process = run(['python', f'{UBXTOOL}', *command], text=True, capture_output=True)
-    # Proxying stdout as stdout handle inheritance induces race condition and output misalignment
-    # TESTME: do I still need this proxying?
+    # Proxying stdout to remove blank lines in output
     print(*filter(None, ubxtool_process.stdout.split('\n')), sep='\n')
     return ubxtool_process.returncode
 
@@ -195,10 +196,8 @@ if __name__ == '__main__':
             if not to_set:
                 die(0, f"No items found under [set] section in config file {config_file.name}")
 
-            print()
             print(f"Writing configuration to {args.device}...")
             for memory_level, config_items in to_set.items():
-                print()
                 print(f"Memory level {memory_level}: {len(config_items)} items")
                 for i, chunk in enumerate(chunks(config_items.items(), MAX_ITEMS)):
                     if len(config_items) > MAX_ITEMS:
@@ -224,13 +223,11 @@ if __name__ == '__main__':
 
             items = tuple(item.split('=') for item in args.configitems)
 
-            print()
             print("Sending {count} configuration item(s) to {device} at {level} memory level(s)..."
                   .format(count=len(items), device=args.device, level=', '.join(level.flags)))
             ubx_valset(*items, device=args.device, baud=args.baudrate, level=level)
 
         elif args.reset:
-            print()
             print("Performing device reset...")
             try:
                 ubx_reset(device=args.device, baud=args.baudrate, timeout=0.1)
@@ -242,18 +239,15 @@ if __name__ == '__main__':
                 ubx_reset(device=args.device, baud=args.baudrate, timeout=1)
 
             # Auto config baudrate to 115200
-            print()
             print(f"Set baudrate on UART1 to {args.baudrate}...")
             ubx_valset(('CFG-UART1-BAUDRATE', hex(args.baudrate)),
                        device=args.device, baud=DEFAULT_BAUDRATE, level=MemoryLevel.ALL)
 
     except UbxtoolError as e:
-        die(e.args[1], f"Configuration was not finished properly due to {e.__class__.__name__}: {e.args[0]}")
+        die(e.args[1], f"Reconfiguration was not finished properly due to {e.__class__.__name__}: {e.args[0]}")
 
     except Exception as e:
-        import sys
-        die(1, f"Device configuration interrupted due to {e.__class__.__name__}: {e.args[0]}", file=sys.stderr)
+        die(1, f"Device reconfiguration interrupted due to {e.__class__.__name__}: {e.args[0]}")
 
     else:
-        print()
-        die(0, "Device configuration completed")
+        die(0, "Device reconfiguration completed")

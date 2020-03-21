@@ -23,22 +23,17 @@ Commands:
 """
 import errno
 import sys
-from os import mkfifo, pipe2, O_NONBLOCK
 from enum import Enum, Flag
-from functools import reduce
-from itertools import chain, repeat
-from collections import defaultdict as dd
-from operator import or_ as bitwise_or
-from typing import Tuple, Dict, Iterable
-
-import toml
+from os import mkfifo, pipe2, O_NONBLOCK
 from pathlib import Path
 from subprocess import run, Popen, DEVNULL, STDOUT
+from typing import Tuple
 
+import toml
 
 # TODO: migrate to logging and make use of config['tracelevel']
 
-# TODO: update mvbs docstring (incorporate proxying functionality)
+# TODO: update mvbs docstring (incorporate proxying and reset functionalities)
 
 
 __version__ = "1.2"
@@ -47,7 +42,7 @@ PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT/'config.toml'
 STR2STR = PROJECT/'str2str'
 STR2STR_LOG = PROJECT/'logs'/f'{STR2STR.stem}.log'
-UBXTOOL = PROJECT/'ubxtool.py'
+UBX_CONFIG = PROJECT/'ubx_config.py'
 RTCM_PROXY = PROJECT/'rtcm_proxy.py'
 RTCM_PROXY_LOG = PROJECT/'logs'/f'{RTCM_PROXY.stem}.log'
 PID_FILE = Path('/run/user/bs/ntrips.pid')
@@ -194,29 +189,10 @@ def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
     return coord, coord_hp
 
 
-def ubx_valset(spec: Dict[str, int], *, baudrate: int, memlevel: int) -> int:
-    valset = [
-        'python', f'{UBXTOOL}',
-        '-f', '/dev/serial0', '-s', str(baudrate),
-        '-w', '0.5', '-l', str(memlevel)
-    ]
-    spec_pairs = (f'{key},{int(value)}' for key, value in spec.items())
-    valset.extend(chain(*zip(repeat('-z'), spec_pairs)))
+def config_ublox(receiver_params: dict, serial_params: dict) -> int:
+    print("Processing receiver config...")
 
-    print("Command: " + ' '.join(valset))
-
-    ubxtool_process = run(valset, text=True, capture_output=True)
-    # Proxying stdout as stdout handle inheritance induces race condition and output misalignment
-    print('\n' + ubxtool_process.stdout.strip('\n') + '\n')
-    print(f"ubxtool: exitcode {ubxtool_process.returncode}", end='\n')
-
-    return ubxtool_process.returncode
-
-
-def config_ublox(params: dict, serial_params: dict) -> int:
-    print("Configuring uBlox receiver...")
-
-    tmode = params['mode']
+    tmode = receiver_params['mode']
     try:
         if isinstance(tmode, int):
             tmode = TMode(tmode)
@@ -227,18 +203,18 @@ def config_ublox(params: dict, serial_params: dict) -> int:
                          f"expected within [{', '.join(TMode.__members__)}]")
 
     spec = {'CFG-TMODE-MODE': tmode.value}
-    print(f"Time mode: {tmode.name}")
 
+    print(f"Time mode: {tmode.name}")
     if tmode is TMode.FIXED:
         print("Base station coordinates:",
-              f"    lat: {params['lat']}",
-              f"    lon: {params['lon']}",
-              f"    height: {params['hgt']}",
+              f"    lat: {receiver_params['lat']}",
+              f"    lon: {receiver_params['lon']}",
+              f"    height: {receiver_params['hgt']}",
               sep='\n')
 
-        lat, lat_hp = wgs84_to_ublox(params['lat'], valtype='coordinate')
-        lon, lon_hp = wgs84_to_ublox(params['lon'], valtype='coordinate')
-        hgt, hgt_hp = wgs84_to_ublox(params['hgt'], valtype='height')
+        lat, lat_hp = wgs84_to_ublox(receiver_params['lat'], valtype='coordinate')
+        lon, lon_hp = wgs84_to_ublox(receiver_params['lon'], valtype='coordinate')
+        hgt, hgt_hp = wgs84_to_ublox(receiver_params['hgt'], valtype='height')
 
         spec.update({
             'CFG-TMODE-LAT':    lat,    'CFG-TMODE-LAT_HP':    lat_hp,
@@ -248,32 +224,44 @@ def config_ublox(params: dict, serial_params: dict) -> int:
 
     elif tmode is TMode.SVIN:
         spec.update({
-            'CFG-TMODE-SVIN_MIN_DUR':   int(params['observe']),
-            'CFG-TMODE-SVIN_ACC_LIMIT': int(params['accuracy'])*10,
+            'CFG-TMODE-SVIN_MIN_DUR':   int(receiver_params['observe']),
+            'CFG-TMODE-SVIN_ACC_LIMIT': int(receiver_params['accuracy'])*10,
         })
 
-    level = params['level']
-    if isinstance(level, int):
-        level = MLevel(level)
-    elif isinstance(level, str):
-        level = MLevel[level.upper()]
-    elif isinstance(level, Iterable):
-        for item in level:
-            if not isinstance(item, str) or item.upper() not in MLevel.__members__:
-                raise ValueError(f"Invalid memory level '{item}' in config.toml - "
-                                 f"expected within [{', '.join(MLevel.__members__)}]")
-        level = reduce(bitwise_or, (MLevel[item.upper()] for item in level))
-    else:
-        raise ValueError("Invalid memory levels specification in config.toml")
+    levels = receiver_params['level']
+    if isinstance(levels, str):
+        levels = (levels,)
 
-    print(f"Save config to memory levels: {', '.join(level.flags)}")
-    return ubx_valset(spec, baudrate=serial_params['baudrate'], memlevel=level.value)
+    print(f"Running 'ubx_config'...")
+    ubx_config = ['python', f'{UBX_CONFIG}', '-d', serial_params['port'],
+                  '-b', str(serial_params['baudrate']), '-m', *levels]
+    ubx_config += ['-i', *(f'{key}={value}' for key, value in spec.items())]
+
+    print(f"Ubx config command: {' '.join(ubx_config)}")
+    sys.stdout.flush()
+    return run(ubx_config, text=True).returncode
 
 
-def reset_ublox():
-    # ubxtool -p CLEAR ...
-    # ubx_file_config
-    return NotImplemented
+def reset_ublox(receiver_params: dict, serial_params: dict) -> int:
+    ubx_config = ['python', f'{UBX_CONFIG}', '-d', serial_params['port'], '-b', str(serial_params['baudrate'])]
+    static_config_file = Path(receiver_params['configfile']).expanduser().resolve()
+    if not static_config_file.exists():
+        print(f"File '{static_config_file.name}' does not exist")
+        return 2
+    print(f"Using static config file at {static_config_file}")
+
+    reset_command = [*ubx_config, '-r']
+    print(f"Reset command: {' '.join(reset_command)}")
+    sys.stdout.flush()
+    returncode = run(reset_command, text=True).returncode
+    if returncode != 0:
+        return returncode
+
+    file_config_command = [*ubx_config, '-f', f'{static_config_file}']
+    print(f"Config from file command: {' '.join(file_config_command)}")
+    sys.stdout.flush()
+    returncode = run(file_config_command, text=True).returncode
+    return returncode
 
 
 if __name__ == '__main__':
@@ -281,7 +269,7 @@ if __name__ == '__main__':
         print(f"Environment: '{PROJECT}'")
         print(f"Script: '{__file__}'")
 
-        config = dd(lambda: None, toml.load(str(CONFIG_FILE)))
+        config = toml.load(str(CONFIG_FILE))
         print(f"Loaded {CONFIG_FILE.name}")
 
         if len(sys.argv) < 2:
@@ -312,10 +300,10 @@ if __name__ == '__main__':
             if config['BASE']['autoconfig'] is True:
                 exitcode = config_ublox(config['BASE'], config['SERIAL'])
                 if exitcode != 0:
-                    print("uBlox configuration was not completed due to ubxtool errors")
+                    print("Receiver configuration was not completed")
                     die(exitcode)
             else:
-                print("uBlox auto-config is disabled")
+                print("Receiver auto-config is disabled")
                 print("Could be enabled with 'BASE.autoconfig = true' in config.toml")
 
             die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
@@ -331,19 +319,10 @@ if __name__ == '__main__':
             die(exitcode)
 
         elif command == 'reset':
-            try:
-                ublox_config_file = Path(sys.argv[2])
-            except IndexError:
-                print("Error: uCenter configuration file is not provided")
-                die(1)
-            if not ublox_config_file.exists():
-                print(f"File '{ublox_config_file.name}' does not exist")
-                die(1)
-
             if PID_FILE.exists():
                 stop_server()
 
-            exitcode = reset_ublox()
+            exitcode = reset_ublox(config['BASE'], config['SERIAL'])
             print(f"Receiver reset {'failed' if exitcode else 'success'}")
             exit(exitcode)
 
