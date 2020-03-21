@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
-import sys
 from argparse import ArgumentParser
 from enum import Flag
-from itertools import takewhile, dropwhile, islice, chain, repeat
+from functools import reduce
+from itertools import islice, chain, repeat
 from math import ceil
+from operator import or_ as bitwise_or
 from pathlib import Path
 from subprocess import run
-from sys import argv
 from types import SimpleNamespace as Namespace
-from typing import Tuple, List, Collection, Iterable, Dict
-
-import toml
-
+from typing import Tuple, Collection, Iterable, Dict
 
 PROJECT = Path('/home/pi/app')
 UBXTOOL = PROJECT/'ubxtool.py'
@@ -90,7 +87,7 @@ def chunks(data: Collection, volume: int, optimize=True) -> tuple:
 
 
 def ubxtool_call(command):
-    print(f"ubxtool args: {' '.join(command[:10] + [' ...'] if len(command) > 10 else command)}")
+    print(f"ubxtool args: {' '.join(command[:10] + ['...'] if len(command) > 10 else command)}")
     ubxtool_process = run(['python', f'{UBXTOOL}', *command], text=True, capture_output=True)
     # Proxying stdout as stdout handle inheritance induces race condition and output misalignment
     # TESTME: do I still need this proxying?
@@ -133,7 +130,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--baudrate', required=True, type=int,
                         help="baudrate for serial output stream")
 
-    parser.add_argument('-m', '--memory-levels', dest='level', nargs='+', default='RAM', metavar='LEVEL',
+    parser.add_argument('-m', '--memory-levels', dest='levels', nargs='+', default='RAM', metavar='LEVEL',
                         help="memory level for configuration ({})"
                         .format((', '.join(MemoryLevel.__members__))))
 
@@ -146,7 +143,7 @@ if __name__ == '__main__':
                        help="uCenter Gen9 configuration file input, -m is ignored")
 
     group.add_argument('-i', '--items', nargs='+', default=[],
-                       dest='configitems', metavar='ITEM,VALUE',
+                       dest='configitems', metavar='ITEM=VALUE',
                        help="configuration parameters for VALSET command")
 
     args = parser.parse_args()
@@ -193,10 +190,29 @@ if __name__ == '__main__':
                 print(f"Sending config, timeout={round(UBXTOOL_ITEM_TIMEOUT*len(chunk), 2)}s...")
                 ubx_valset(*chunk, device=args.device, baud=args.baudrate, level=MemoryLevel[memory_level])
                 print()
-        print("Device configuration completed")
+        print("Device configuration from file completed")
 
     elif args.configitems:
-        ...
+        try:
+            level = reduce(bitwise_or, (MemoryLevel[item.upper()] for item in args.levels))
+        except KeyError as e:
+            print(f"Invalid memory level '{e.args[0]}', expected within [{', '.join(MemoryLevel.__members__)}]")
+            exit(1)
+
+        if len(args.configitems) > MAX_ITEMS:
+            print(f"Maximum of {MAX_ITEMS} items is exceeded, got {len(args.configitems)}")
+            exit(1)
+        for i, item in enumerate(args.configitems):
+            if item.count('=') != 1 or '=' not in item[1:-1]:
+                print(f"Invalid config item #{i} format: '{item}', expected 'ITEM=VALUE'")
+                exit(1)
+        items = tuple(item.split('=') for item in args.configitems)
+
+        print()
+        print(f"Sending {len(items)} configuration item(s) to {args.device} at {level.name} memory level(s)...")
+        ubx_valset(*items, device=args.device, baud=args.baudrate, level=level)
+        print()
+        print("Device configuration completed")
 
     elif args.reset:
         returncode = ubx_reset(device=args.device, baud=args.baudrate, timeout=0.1)
