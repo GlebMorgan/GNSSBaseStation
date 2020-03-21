@@ -130,6 +130,8 @@ opts = {
     'verbosity': VERB_NONE,
     # contents of environment variable UBXOPTS
     'progopts': '',
+    # default VALSET memory level
+    'level': '0x7',
 }
 
 
@@ -6585,12 +6587,13 @@ Always double check with "-p CFG-GNSS".
             m_data.extend(k_data)
         gps_model.gps_send(0x06, 0x8b, m_data)
 
-    def send_cfg_valset(self, nvs, layer=0x7):
+    def send_cfg_valset(self, nvs, layer):
         """UBX-CFG-VALSET, set config items by key/val pairs"""
 
+
         m_data = bytearray(4)
-        m_data[0] = 0      # version, 0 = request, 1 = transaction
-        m_data[1] = layer  # RAM layer, 1=RAM, 2=BBR, 4=Flash
+        m_data[0] = 0              # version, 0 = request, 1 = transaction
+        m_data[1] = int(layer, 0)  # RAM layer, 1=RAM, 2=BBR, 4=Flash
 
         for nv in nvs:
             size = 4
@@ -6608,9 +6611,9 @@ Always double check with "-p CFG-GNSS".
             frmat = cfg_type[1]
             flavor = cfg_type[2]
             if 'u' == flavor:
-                val1 = int(val)
+                val1 = int(val, 0)
             elif 'i' == flavor:
-                val1 = int(val)
+                val1 = int(val, 0)
             elif 'f' == flavor:
                 val1 = float(val)
 
@@ -7457,7 +7460,7 @@ for (opt, val) in options:
     elif opt == '-z':
         opts['set_item'].append(val)
     elif opt == '-l':
-        opts['level'] = int(val)
+        opts['level'] = val
 
 if opts['help']:
     usage()
