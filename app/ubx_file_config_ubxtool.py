@@ -18,7 +18,8 @@ UBXTOOL = PROJECT/'ubxtool.py'
 PID_FILE = Path('/run/user/bs/ntrips.pid')
 
 
-UBXTOOL_TIMEOUT = 0.5
+DEFAULT_BAUDRATE = 38400
+UBXTOOL_ITEM_TIMEOUT = 0.025  # Note: values <0.005 will be rounded to 0.0
 MAX_ITEMS = 64
 
 
@@ -45,41 +46,7 @@ class DeviceMask(FlagEnum):
     ALL   = 0b11
 
 
-def get_sections_itertools(file: Path) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-    """
-    Split 'file' to [del] and [set] sections and return tuple
-        (<items_to_del>, <items_to_set>) with raw config file strings
-    """
-    lines = dropwhile(lambda line: line.strip() != '[del]', file.open())
-    lines.__next__()  # consume '[del]' marker itself
-    del_items = tuple(takewhile(lambda line: line.strip() != '[set]', lines))
-    set_items = tuple(lines)
-    return del_items, set_items
-
-
-def get_sections(data: Iterable[str]) -> Tuple[List[tuple], List[tuple]]:
-    """
-    Split 'data' to [del] and [set] sections
-        and return tuple of 2 lists containing (key, value) pairs
-    """
-
-    del_items = []
-    set_items = []
-    target = None
-    for line in data:
-        line = line.strip()
-        if line == '[del]':
-            target = del_items
-        elif line == '[set]':
-            target = set_items
-        elif line and target is not None:
-            spec = tuple(line.split())[1:3]
-            if spec not in target:
-                target.append(spec)
-    return del_items, set_items
-
-
-def get_config(data: Iterable[str]) -> Tuple[Dict[str, dict], Dict[str, dict]]:
+def parse_config(data: Iterable[str]) -> Tuple[Dict[str, dict], Dict[str, dict]]:
     """
     Split 'data' stream to [del] and [set] sections
     Parse each config section and split it based on specified memory level
@@ -122,6 +89,40 @@ def chunks(data: Collection, volume: int, optimize=True) -> tuple:
         chunk = tuple(islice(iterator, volume))
 
 
+def ubxtool_call(command):
+    print(f"ubxtool args: {' '.join(command[:10] + [' ...'] if len(command) > 10 else command)}")
+    ubxtool_process = run(['python', f'{UBXTOOL}', *command], text=True, capture_output=True)
+    # Proxying stdout as stdout handle inheritance induces race condition and output misalignment
+    # TESTME: do I still need this proxying?
+    print(*filter(None, ubxtool_process.stdout.split('\n')), sep='\n')
+    return ubxtool_process.returncode
+
+
+def ubx_valset(*items: Tuple[str, str], device: str, baud: int, level: MemoryLevel):
+
+    timeout = round(UBXTOOL_ITEM_TIMEOUT*len(items), 2)
+    valset = ['-f', device, '-s', str(baud), '-w', str(timeout), '-l', str(level.value)]
+    spec = (f'{key},{value}' for key, value in items)
+    valset.extend(chain(*zip(repeat('-z'), spec)))
+
+    returncode = ubxtool_call(valset)
+
+    if returncode != 0:
+        subject = f"item {'='.join(items[0])}" if len(items) == 1 else f"{len(items)} items"
+        print(f"Failed to send {subject} to memory level {level.name} over {device}:{baud}")
+    else:
+        print(f"Sent {len(items)} config item(s) to {level.name} level(s)")
+
+    return returncode
+
+
+def ubx_reset(device: str, baud: int, timeout: float):
+    valset = ['-f', device, '-s', str(baud), '-w', str(round(timeout, 2)), '-p', 'RESET']
+    returncode = ubxtool_call(valset)
+    print(f"Device reset {'failed' if returncode != 0 else 'success'}")
+    return returncode
+
+
 if __name__ == '__main__':
 
     parser = ArgumentParser(description='Configure uBlox receiver via ubxtool utility')
@@ -132,34 +133,25 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--baudrate', required=True, type=int,
                         help="baudrate for serial output stream")
 
-    parser.add_argument('-l', '--level', nargs='+', default='RAM',
+    parser.add_argument('-m', '--memory-levels', dest='level', nargs='+', default='RAM', metavar='LEVEL',
                         help="memory level for configuration ({})"
                         .format((', '.join(MemoryLevel.__members__))))
 
     group = parser.add_mutually_exclusive_group(required=True)
 
-    group.add_argument('-r', '--reset', nargs='?', metavar='LEVEL', const=['ALL'],
-                       help="reset device configuration on specified memory level ({}) "
-                       .format((' | '.join(DeviceMask.__members__))))
+    group.add_argument('-r', '--reset', action='store_true',
+                       help="reset device configuration on all memory levels")
 
     group.add_argument('-f', '--configfile', type=Path,
-                       help="uCenter Gen9 configuration file input")
+                       help="uCenter Gen9 configuration file input, -m is ignored")
 
     group.add_argument('-i', '--items', nargs='+', default=[],
                        dest='configitems', metavar='ITEM,VALUE',
                        help="configuration parameters for VALSET command")
 
-    # -d    device     (-f)
-    # -b    baudrate   (-s)
-    # -f    file input         exclusive group
-    # -i    items      (-z)    exclusive group
-    # -l    level      (-l)
-    # -r    reset              exclusive group
-
     args = parser.parse_args()
 
-    print(*(f'{name}: {value}' for name, value in vars(args).items()), sep='\n')
-    exit(0)
+    print("Arguments:", *(f'{" "*4}{name}: {value}' for name, value in vars(args).items()), sep='\n')
 
     if PID_FILE.exists():
         print("Error: NTRIP server is running. Could be stopped with 'mvbs stop'")
@@ -168,51 +160,57 @@ if __name__ == '__main__':
     if not args.device.startswith('/dev/'):
         args.device = f'/dev/{args.device}'
 
-    UBX_CONFIG_FILE: Path = args.configfile.expanduser().resolve()
-    if not UBX_CONFIG_FILE.exists():
-        parser.error(f"File {UBX_CONFIG_FILE.name} does not exist")
-
-    valset = ['python', f'{UBXTOOL}', '-f', args.device, '-s', args.baudrate, '-w', f'{UBXTOOL_TIMEOUT}']
-
     if args.configfile:
+        # TODO: use transaction mode
+
+        config_file: Path = args.configfile.expanduser().resolve()
+        if not config_file.exists():
+            parser.error(f"File {config_file.name} does not exist")
+
+        print(f"Loading config from {config_file}...")
         try:
-            to_del, to_set = get_config(UBX_CONFIG_FILE.read_text())
+            with config_file.open() as ubx_config:
+                to_del, to_set = parse_config(ubx_config)
         except BadConfigError as e:
             parser.error(e)
-        if to_del:
+        print(f"Loaded {sum(len(values) for values in to_set.values())} items")
+
+        if any(items_list for items_list in to_del.values()):
             print('Config items deletion is not supported')
             exit(1)
+
         if not to_set:
-            print(f"No items found under [set] section in config file {UBX_CONFIG_FILE.name}")
+            print(f"No items found under [set] section in config file {config_file.name}")
             exit(0)
 
-        print("Write configuration from {filename}: {count} items".format(
-            filename=UBX_CONFIG_FILE.name, count=sum(len(values) for values in to_set.values())
-        ))
+        print()
+        print(f"Writing configuration to {args.device}...")
         for memory_level, config_items in to_set.items():
-            print(f"{' '*4}Memory level {memory_level}: {len(config_items)} items")
+            print(f"Memory level {memory_level}: {len(config_items)} items")
+            for i, chunk in enumerate(chunks(config_items.items(), MAX_ITEMS)):
+                if len(config_items) > MAX_ITEMS:
+                    print(f"Chunk #{i+1}, {len(chunk)} items")
+                print(f"Sending config, timeout={round(UBXTOOL_ITEM_TIMEOUT*len(chunk), 2)}s...")
+                ubx_valset(*chunk, device=args.device, baud=args.baudrate, level=MemoryLevel[memory_level])
+                print()
+        print("Device configuration completed")
 
-            chunked = (len(config_items) > MAX_ITEMS)
-            level_spec = ['-l', f'{MemoryLevel[memory_level].value}']
-            for i, chunk in enumerate(chunks(config_items, MAX_ITEMS)):
-                if chunked:
-                    print(f"{' '*8}Chunk #{i+1}, {len(chunk)} items")
-
-                spec = (f'{key},{value}' for key, value in chunk)
-                command = valset + level_spec + [*chain(*zip(repeat('-z'), spec))]
-
-                indent = ' ' * (12 if chunked else 8)
-                print(*(f"{indent}{key} = {value}" for key, value in chunk), sep='\n')
-
-                print(f"{indent}Command: {' '.join(command)}")
-                input("Pause before sending config ...")
-
-                ubxtool_process = run(command)
-                if ubxtool_process.returncode != 0:
-                    print(f"Failed to send config section #{i} to memory level {memory_level}")
-                    exit(1)
-
-    elif args.items:
+    elif args.configitems:
         ...
+
     elif args.reset:
-        ...
+        returncode = ubx_reset(device=args.device, baud=args.baudrate, timeout=0.1)
+        if returncode != 0:
+            from time import sleep
+            print("Waiting a moment and retry...")
+            sleep(1)
+            returncode = ubx_reset(device=args.device, baud=args.baudrate, timeout=1)
+            if returncode != 0:
+                exit(returncode)
+
+        # Auto config baudrate to 115200
+        print(f"Set baudrate on UART1 to {args.baudrate}")
+        ubx_valset(('CFG-UART1-BAUDRATE', hex(args.baudrate)),
+                   device=args.device, baud=DEFAULT_BAUDRATE, level=MemoryLevel.ALL)
+
+        print("Device reset completed")
