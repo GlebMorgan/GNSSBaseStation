@@ -314,6 +314,14 @@ if __name__ == '__main__':
             else:
                 stop_server()
 
+            if '-c' in sys.argv:
+                exitcode = config_ublox(config['BASE'], config['SERIAL'])
+                if exitcode != 0:
+                    print("Receiver configuration was not completed, restart failed")
+                    die(exitcode)
+                else:
+                    print("Receiver is reconfigured")
+
             exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
             print(f"NTRIP server restart {'failed' if exitcode else 'success'}")
             die(exitcode)
