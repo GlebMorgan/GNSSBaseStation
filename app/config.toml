@@ -12,7 +12,7 @@ stopbits = 1
 flowcontrol = 'off'
 
 [NTRIPS]
-inject = [1008]
+inject = [1006, 1008, 1033]
 anchor = 1005
 interval = 1
 
