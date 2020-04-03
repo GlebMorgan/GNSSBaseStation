@@ -300,7 +300,7 @@ if __name__ == '__main__':
             if config['BASE']['autoconfig'] is True:
                 exitcode = config_ublox(config['BASE'], config['SERIAL'])
                 if exitcode != 0:
-                    print("Receiver configuration was not completed")
+                    print("Receiver configuration was not completed due to ubxtool errors")
                     die(exitcode)
             else:
                 print("Receiver auto-config is disabled")
