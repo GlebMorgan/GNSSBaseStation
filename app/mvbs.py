@@ -191,9 +191,9 @@ def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
     return coord, coord_hp
 
 
-def ubx_valset(spec: Dict[str, int], *, baudrate, memlevel) -> int:
+def ubx_valset(spec: Dict[str, int], *, baudrate: int, memlevel: int) -> int:
     valset = [
-        'python', str(UBXTOOL),
+        'python', f'{UBXTOOL}',
         '-f', '/dev/serial0', '-s', str(baudrate),
         '-w', '0.5', '-l', str(memlevel)
     ]
@@ -272,7 +272,7 @@ if __name__ == '__main__':
         print(f"Environment: '{PROJECT}'")
         print(f"Script: '{__file__}'")
 
-        config = dd(lambda: None, toml.load(str(CONFIG_FILE)))
+        config = toml.load(str(CONFIG_FILE))
         print(f"Loaded {CONFIG_FILE.name}")
 
         if len(sys.argv) < 2:
@@ -303,10 +303,10 @@ if __name__ == '__main__':
             if config['BASE']['autoconfig'] is True:
                 exitcode = config_ublox(config['BASE'], config['SERIAL'])
                 if exitcode != 0:
-                    print("uBlox configuration was not completed due to ubxtool errors")
+                    print("Receiver configuration was not completed due to ubxtool errors")
                     die(exitcode)
             else:
-                print("uBlox auto-config is disabled")
+                print("Receiver auto-config is disabled")
                 print("Could be enabled with 'BASE.autoconfig = true' in config.toml")
 
             die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
@@ -316,6 +316,15 @@ if __name__ == '__main__':
                 print("NTRIP server is not running")
             else:
                 stop_server()
+
+            if '-c' in sys.argv:
+                exitcode = config_ublox(config['BASE'], config['SERIAL'])
+                if exitcode != 0:
+                    print("Receiver configuration was not completed, restart failed")
+                    die(exitcode)
+                else:
+                    print("Receiver is reconfigured")
+
             exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
             print(f"NTRIP server restart {'failed' if exitcode else 'success'}")
             die(exitcode)
