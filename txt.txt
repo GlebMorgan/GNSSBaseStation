@@ -78,6 +78,7 @@ https://stackoverflow.com/questions/1550378/is-it-possible-to-push-a-git-stash-t
 https://superuser.com/questions/409228/how-can-i-share-a-git-stash/817350#817350
 
 
+
 |date        |time      |in/out4x   |received    |rate   |streams   |status         |error_code
 2020/02/15   14:18:42   [EC---]     0 B          0 bps   (2)        connect error   (111)
 
