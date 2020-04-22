@@ -4,8 +4,6 @@ from enum import Enum
 from pathlib import Path
 from subprocess import run
 
-import toml
-
 
 class StreamStatus(Enum):
     # Original statuses: E: error, -: close, W: wait, C: connect, C: active
@@ -60,12 +58,10 @@ def get_ntrips_status():
     return mvbs_regex.search(result).groups()[0]
 
 
-def get_status():
-    configfile = '/home/pi/app/config.toml'
+def get_status(config):
     str2str_timestamp_fmt = r'%Y/%m/%d %H:%M:%S'
     target_timestamp_fmt = r'%d.%m.%Y %H:%M:%S'
 
-    config = toml.load(str(configfile))
     ntripc_config = config['NTRIPC']
 
     ntrips_status = get_ntrips_status()
@@ -97,7 +93,3 @@ def get_status():
         })
 
     return data
-
-
-if __name__ == '__main__':
-    print(*(f'{name.ljust(20)} {value}' for name, value in get_status().items()), sep='\n')

@@ -54,9 +54,9 @@ Transfer uncommitted work in progress to another workstation:
 
 1) Ponder attentively what files / resources need to be transferred
 2) Commit all files that needs to be transferred to new temporary branch
-3) Push new branch
+3) Push new working branch
 
-4) On another PC, pull new temporary branch and checkout
+4) On another PC, pull master + new working branch and checkout latter
 5) Make sure all changes have been fetched and merged
 5) Apply stored work to master branch:
     git checkout --detach
@@ -76,6 +76,7 @@ Another approach is to use diff files:
 Other approaches - share in-progress code via GitHub
 https://stackoverflow.com/questions/1550378/is-it-possible-to-push-a-git-stash-to-a-remote-repository
 https://superuser.com/questions/409228/how-can-i-share-a-git-stash/817350#817350
+
 
 
 |date        |time      |in/out4x   |received    |rate   |streams   |status         |error_code
