@@ -1,6 +1,7 @@
 name = 'odincova_dev'
 tracelevel = 'DEBUG'
 autostart = true
+status_update_rate = 5
 
 [SERIAL]
 # Name of serial device in /dev
