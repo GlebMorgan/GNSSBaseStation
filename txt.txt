@@ -86,9 +86,10 @@ statuses: E: error, -: closed, W: wait, C: connect, C: active
 
 
 
-
-
-'0b 0011 1110 1101 0000'
-
-
-1101 0000 0011 1110
+When working with both LF and CRLF line endings:
+1) Create .editorconfig file and setup necessary line endings there
+    by specifying file/directory templates
+2) Setup default line endings = LF in IDE settings
+    and also configure it to respect .editorconfig file
+3) Configure git not to auto-convert line endings when pushing or pulling files:
+    git config --global core.autocrlf false
