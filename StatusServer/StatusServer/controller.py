@@ -48,7 +48,7 @@ def get_str2str_status():
     if match is None:
         return None
 
-    return {field: value for field, value in zip(fields, match.groups())}
+    return {field: value for field, value in zip(fields, match.groups(default=''))}
 
 
 def get_ntrips_status():
