@@ -58,6 +58,13 @@ def get_ntrips_status():
     return mvbs_regex.search(result).groups()[0]
 
 
+def get_zero2go_status():
+    command = 'bash -c ". /home/pi/zero2go/utilities.sh && read_channel_A && read_channel_B && read_channel_C"'
+    # In case of failure, result will be bare 0
+    raw = run(command, capture_output=True, shell=True, text=True).stdout.split()
+    return tuple(f'{x} V' for x in raw) if len(raw) == 3 else None
+
+
 def get_status(config):
     str2str_timestamp_fmt = r'%Y/%m/%d %H:%M:%S'
     target_timestamp_fmt = r'%d.%m.%Y %H:%M:%S'
@@ -72,6 +79,8 @@ def get_status(config):
         stream_status = None
         timestamp = datetime.now()
 
+    voltages = get_zero2go_status()
+
     data = {
         'Updated':              datetime.strftime(timestamp, target_timestamp_fmt),
         'Device name':          config['name'],
@@ -81,6 +90,15 @@ def get_status(config):
         'Mountpoint':           ntripc_config['mountpoint'],
         'Base station mode':    config['BASE']['mode'],
     }
+
+    if voltages is None:
+        data['Input voltage'] = "Error"
+    else:
+        data.update({
+            'USB input voltage': voltages[0],
+            'Lemo input voltage': voltages[1],
+            'Battery voltage': voltages[2],
+        })
 
     if stream_status is not None:
         data.update({
