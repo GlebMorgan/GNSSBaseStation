@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from enum import Enum
+from math import log
 from pathlib import Path
 from subprocess import run
 
@@ -29,11 +30,17 @@ def config_parse_test():
     print(stats[5])
 
 
+def format_unit(value, unit):
+    prefixes = ['', 'k', 'M', 'G', 'T']
+    order = min(int(log(value, 1000)), 4)
+    return "{:.5g} {}{}".format(value/(1000 ** order or 1), prefixes[order], unit)
+
+
 def get_str2str_status():
     logfile = Path('/home/pi/app/logs/str2str.log')
     fields = 'timestamp', 'state', 'received', 'rate', 'streams', 'info'
     str2str_regex = re.compile(r'(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
-                               r'\[(.{5})\]\s+(\d+ B)\s+(\d+ bps)'
+                               r'\[(.{5})\]\s+(\d+) B\s+(\d+) bps'
                                r'(?:\s+\((\d+)\)\s+(.*))*')
     if not logfile.exists():
         return None
@@ -104,8 +111,8 @@ def get_status(config):
         data.update({
             'Input RTCM3 stream':   StreamStatus(stream_status['state'][0]).name,
             'Output RTCM3 stream':  StreamStatus(stream_status['state'][1]).name,
-            'Bytes received':       stream_status['received'],
-            'Transmission rate':    stream_status['rate'],
+            'Bytes received':       format_unit(int(stream_status['received']), 'B'),
+            'Transmission rate':    stream_status['rate'] + ' B/s',
             'Number of streams':    stream_status['streams'],
             'Connection status':    stream_status['info'].strip(),
         })
