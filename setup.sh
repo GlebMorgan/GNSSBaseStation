@@ -118,6 +118,21 @@ sudo rm -r gpsd-master
 
 #########################################################################
 
+echo ZERO2GO
+
+# Download Zero2Go installer script
+cd ~
+wget http://www.uugear.com/repo/Zero2GoOmini/installZero2Go.sh
+
+# Run the installation
+sudo sh installZero2Go.sh
+
+# Clean up and remove unused libraries
+sudo apt autoremove
+rm installZero2Go.sh
+
+#########################################################################
+
 echo VIM
 
 # Install vim
