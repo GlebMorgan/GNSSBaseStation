@@ -1,0 +1,350 @@
+html {
+  min-width: 400px;
+}
+
+body {
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: #dae0e5;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+
+/* Card */
+
+.card {
+  flex-basis: 600px;  /* TODO: replace back to 500px; */
+  margin: 1rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.card-header h4 {
+  margin: 0;
+}
+
+.card-header .title {
+  flex-grow: 1;
+  padding: 0 1rem;
+}
+
+.card-header .status {
+  font-weight: normal;
+}
+
+.list-group-item {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.group-title {
+  font-size: 1.25rem;
+  flex-basis: 0;
+  flex-grow: 1;
+}
+
+.group-content {
+  flex-grow: 1;
+  margin: 0.5rem 0 0.5rem 2rem;
+}
+
+.group-content.item-container-multiline {
+  margin: 0.5rem 0 -0.5rem;
+}
+
+/* Item */
+
+.item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.item:not(:last-child) {
+  margin-bottom: 1rem;
+}
+
+.list-group-item > .item {
+  width: 100%;
+}
+
+.item-container-caption > .item {
+  margin: 0 0 0.5rem;
+}
+
+.item-container-multiline > .item {
+  flex-grow: 1;
+  margin-bottom: 1rem;
+  margin-left: 2rem;
+}
+
+.item-container-multiline > .item.fixed {
+  min-width: 1rem;
+  flex-grow: 0;
+}
+
+/* Item contents */
+
+.item > * {
+  flex-grow: 0;
+  margin-right: 1rem;
+}
+
+.item > *:last-child {
+  margin-right: 0;
+}
+
+.item .status {
+  font-weight: normal;
+  font-size: 1rem;
+  flex-grow: 0;
+}
+
+.item > label {
+  flex-basis: 2rem;
+  margin: 0 1rem 0 0;
+  white-space: nowrap;
+}
+
+.item > label.big {
+  font-size: 1.25rem;
+  flex-grow: 1;
+}
+
+.list-group-item > .item > label {
+  flex-grow: 1;
+  text-align: left;
+}
+
+/* Item groups */
+
+.item-container-caption {
+  width: 100%;  /* ? */
+}
+
+.item-container-caption:not(:last-child) {
+  margin: 0 0 1rem;
+}
+
+.item-container-multiline {
+  /*width: 100%;*/
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* Table */
+
+.rtcm-msgs-list {
+  table-layout: fixed;
+}
+
+.rtcm-msgs-list td {
+  vertical-align: baseline;
+  text-align: center;
+}
+
+.rtcm-msgs-list td.msg-switch {
+  width: 3.5rem;
+}
+
+.rtcm-msgs-list td.msg-type {
+  width: 3rem;
+}
+
+.rtcm-msgs-list td.msg-description {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.rtcm-msgs-list td.msg-rate {
+  width: 4.75rem;
+}
+
+
+
+
+
+
+
+
+.item-container-multiline > .item.xxl {flex-basis: 50rem;}
+.item-container-multiline > .item.xl {flex-basis: 25rem;}
+.item-container-multiline > .item.l {flex-basis: 15rem;}
+.item-container-multiline > .item.m {flex-basis: 12rem;}
+.item-container-multiline > .item.s {flex-basis: 10rem;}
+.item-container-multiline > .item.xs  {flex-basis: 5rem;}
+
+.input-group {
+  width: auto;
+  flex-wrap: nowrap;
+}
+
+.form-control {
+  min-width: 1rem;
+}
+
+.table {
+  margin: 0;
+}
+
+/* Reimplement below rules with JS dynamic width based on 'data-digits' attr */
+
+.item .input-group .form-control[data-digits="1"] {
+  flex: 0 0 1.5rem;
+  width: 1.5rem;
+}
+
+.item .input-group .form-control[data-digits="2"] {
+  flex: 0 0 2rem;
+  width: 2rem;
+}
+
+.item .input-group .form-control[data-digits="3"] {
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+}
+
+.item .input-group .form-control[data-digits="4"] {
+  flex: 0 0 3rem;
+  width: 3rem;
+}
+
+.item .input-group .form-control[data-digits="8"] {
+  flex: 0 0 5.5rem;
+  width: 5.5rem;
+}
+
+.item .input-group .form-control[data-digits="11"] {
+  flex: 0 0 7.0rem;
+  width: 7.0rem;
+}
+
+.custom-select {
+  flex-grow: 0;
+  width: auto;
+}
+
+.progress {
+  flex: 1 1 15rem;
+  min-width: 10rem;
+}
+
+.custom-range.mid {
+  flex: 1 1 10rem;
+  min-width: 5rem;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.add-on-coord {
+  width: 3rem;
+}
+
+.compact {
+  height: 1.75rem;
+  line-height: 1;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+}
+
+.compact > .form-control,
+.compact > .input-group-append > span {
+  height: 1.75rem;
+  padding: 0.25rem;
+}
+
+.custom-select.compact {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* TODO: Set number-changing step when using arrows on number input field (currently is 1) */
+
+
+
+
+
+
+
+
+
+#voltages .progress {
+  background: linear-gradient(
+      to right,
+      #f2f2f2 calc(50% - 1px),
+      #808080 calc(50% - 1px),
+      #808080 calc(50% + 1px),
+      #f2f2f2 calc(50% + 1px)
+  );
+}
+
+#voltages label {
+  flex: 0 0 2.75rem;
+}
+
+#ups-thresholds label {
+  flex: 0 0 4.5rem;
+}
+
+#input-port {
+  width: 4rem;
+}
+
+
+
+
+
+
+
+
+
+section:not(#ntrips) {
+  order: 1;
+}
+
+.progress-bar {
+  width: 30%;
+}
+
+.ruler > div {
+  display: inline-block;
+  height: 1.5rem;
+  padding-left: 0.2rem;
+  outline: 1px solid black;
+  text-align: left;
+}
+
+.ruler > div:nth-child(1) {width: 1rem;}
+.ruler > div:nth-child(2) {width: 3rem;}
+.ruler > div:nth-child(3) {width: 5rem;}
+.ruler > div:nth-child(4) {width: 10rem;}
+.ruler > div:nth-child(5) {width: 25rem;}
