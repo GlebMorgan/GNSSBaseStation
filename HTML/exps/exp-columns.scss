@@ -1,0 +1,65 @@
+$card-width: 10rem;
+$card-max-width: 15rem;
+$card-spacing: 1rem;
+$col-width: $card-width + $card-spacing*2;
+$outer-margin: 2rem;
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: $col-width;  // CONSIDER: assign to body
+}
+
+body {
+  //display: flex;
+  width: auto;
+  margin: 0;
+  padding: $outer-margin;
+  background-color: #dae0e5;
+}
+
+main {
+  margin: 0 auto;
+  columns: $col-width 3;
+  column-gap: $card-spacing;
+}
+
+.card {
+  margin: $card-spacing auto;
+  padding: 0.5rem;
+  min-width: $card-width;
+  max-width: $card-max-width;
+  background-color: white;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  &:first-child {
+    margin-top: 0;
+  }
+  &:last-child {
+    margin-bottom: 0;
+  }
+  &:nth-child(1) {
+    height: 300px;
+    background-color: lightseagreen;
+  }
+  &:nth-child(2) {
+    height: 25rem;
+    background-color: lightblue;
+  }
+  &:nth-child(3) {
+    height: 45rem;
+    background-color: lightsalmon;
+  }
+  &:nth-child(4) {
+    height: 35rem;
+    background-color: violet;
+  }
+  &:nth-child(5) {
+    height: 20rem;
+    background-color: lightgreen;
+  }
+}
+

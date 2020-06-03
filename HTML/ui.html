@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/shoelace-switch.css">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Title</title>
+</head>
+
+<body>
+
+<header>
+  <!-- -->
+</header>
+
+<main>
+  <!--
+  <div class="ruler">
+    <div>1</div><div>3</div><div>5</div><div>10</div><div>25</div>
+  </div>
+  -->
+  <section class="card" id="power">
+    <header class="card-header">
+    <span class="switch switch-sm">
+      <input type="checkbox" id="switch-power">
+      <label for="switch-power"></label>
+    </span>
+      <h4 class="title">Power</h4>
+      <h4><span class="status badge badge-pill badge-info" id="status-power">Status</span></h4>
+    </header>
+
+    <ul class="list-group list-group-flush">
+
+      <li class="list-group-item" id="voltages">
+        <p class="group-title">Input voltages</p>
+        <div class="group-content">
+          <div class="item">
+            <label class="align-right">USB</label>
+            <div class="progress compact" id="usb-voltage">
+              <div class="progress-bar">5.07 V</div>
+            </div>
+          </div>
+          <div class="item">
+            <label class="align-right">LEMO</label>
+            <div class="progress compact" id="lemo-voltage">
+              <div class="progress-bar">12.5 V</div>
+            </div>
+          </div>
+          <div class="item">
+            <label class="align-right">UPS</label>
+            <div class="progress compact" id="ups-voltage">
+              <div class="progress-bar">4.33 V</div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li class="list-group-item" id="ups-thresholds">
+        <p class="group-title">UPS&nbsp;voltage thresholds</p>
+        <div class="group-content">
+          <div class="item">
+            <label for="slider-shutdown-threshold">Shutdown</label>
+            <input type="range" class="custom-range mid" id="slider-shutdown-threshold">
+            <div class="input-group compact">
+              <input type="number" class="form-control align-right" id="input-shutdown-threshold" data-digits="3">
+              <div class="input-group-append"><span class="input-group-text">V</span></div>
+            </div>
+          </div>
+          <div class="item">
+            <label for="slider-recovery-threshold">Recovery</label>
+            <input type="range" class="custom-range mid" id="slider-recovery-threshold">
+            <div class="input-group compact">
+              <input type="number" class="form-control align-right" id="input-recovery-threshold" data-digits="3">
+              <div class="input-group-append"><span class="input-group-text">V</span></div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li class="list-group-item" id="poweroff-timeout">
+        <div class="item">
+          <label for="slider-poweroff-timeout">Poweroff timeout</label>
+          <input type="range" class="custom-range mid" id="slider-poweroff-timeout">
+          <div class="input-group compact">
+            <input type="number" class="form-control align-right" id="input-poweroff-timeout" data-digits="1">
+            <div class="input-group-append"><span class="input-group-text">sec</span></div>
+          </div>
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+  <section class="card" id="base">
+    <header class="card-header">
+    <span class="switch switch-sm">
+      <input type="checkbox" id="switch-base">
+      <label for="switch-base"></label>
+    </span>
+      <h4 class="title">Base station</h4>
+      <h4><span class="status badge badge-pill badge-success" id="status-base">Status</span></h4>
+    </header>
+
+    <ul class="list-group list-group-flush">
+
+      <li class="list-group-item" id="mode">
+        <div class="item">
+          <label class="big" for="select-mode">Mode</label>
+          <select class="custom-select compact" id="select-mode">
+            <option selected>Disabled</option>
+            <option value="1">Fixed</option>
+            <option value="2">SvIn</option>
+          </select>
+          <small class="details" id="base-details">
+            A lot of detail information that spans onto multiple lines
+          </small>
+        </div>
+      </li>
+
+      <li class="list-group-item" id="svin-mode">
+        <p class="group-title">Survey&#8209;in</p>
+        <div class="group-content">
+          <div class="item-container-caption">
+            <label for="slider-acc-time">Coordinates observation time</label>
+            <div class="item">
+              <input type="range" class="custom-range mid" id="slider-acc-time">
+              <div class="input-group compact">
+                <input type="number" class="form-control align-right" id="input-acc-time" data-digits="3">
+                <div class="input-group-append"><span class="input-group-text">sec</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="item-container-caption">
+            <label for="slider-accuracy">Required positional accuracy</label>
+            <div class="item">
+              <input type="range" class="custom-range mid" id="slider-accuracy">
+              <div class="input-group compact">
+                <input type="number" class="form-control align-right" id="input-accuracy" data-digits="3">
+                <div class="input-group-append"><span class="input-group-text">mm</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <li class="list-group-item" id="fixed-mode">
+        <p class="group-title">Fixed&#8209;mode</p>
+        <div class="group-content">
+          <div class="item">
+            <label for="select-coord-system">Coordinate system</label>
+            <select class="custom-select compact" id="select-coord-system">
+              <option selected>WGS-84</option>
+            </select>
+          </div>
+          <div class="item-container-caption" id="coords">
+            <label>Static coordinates</label>
+            <div class="item">
+              <div class="input-group compact">
+                <div class="input-group-prepend"><span class="input-group-text add-on-coord">lat</span></div>
+                <input type="number" class="form-control" id="input-lat" data-digits="11">
+                <div class="input-group-append"><span class="input-group-text">&deg;</span></div>
+              </div>
+            </div>
+            <div class="item">
+              <div class="input-group compact">
+                <div class="input-group-prepend"><span class="input-group-text add-on-coord">lon</span></div>
+                <input type="number" class="form-control" id="input-lon" data-digits="11">
+                <div class="input-group-append"><span class="input-group-text">&deg;</span></div>
+              </div>
+            </div>
+            <div class="item">
+              <div class="input-group compact">
+                <div class="input-group-prepend"><span class="input-group-text add-on-coord">hgt</span></div>
+                <input type="number" class="form-control" id="input-hgt" data-digits="8">
+                <div class="input-group-append"><span class="input-group-text">m</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+  <section class="card" id="ntripc">
+    <header class="card-header">
+    <span class="switch switch-sm">
+      <input type="checkbox" id="switch-ntripc">
+      <label for="switch-ntripc"></label>
+    </span>
+      <h4 class="title">NTRIP Caster</h4>
+      <h4><span class="status badge badge-pill badge-warning" id="status-ntripc">Status</span></h4>
+    </header>
+
+    <ul class="list-group list-group-flush">
+
+      <li class="list-group-item" id="caster">
+        <p class="group-title">Remote NTRIP&nbsp;caster</p>
+        <div class="group-content item-container-multiline">
+          <div class="item xxl">
+            <label for="input-domain">Domain</label>
+            <input type="url" class="form-control compact" id="input-domain">
+          </div>
+          <div class="item fixed">
+            <label class="align-right" for="input-port">Port</label>
+            <input type="number" class="form-control compact" id="input-port">
+          </div>
+          <div class="item m">
+            <label for="input-mountpoint">Mountpoint</label>
+            <input type="text" class="form-control compact" id="input-mountpoint">
+          </div>
+          <div class="item l">
+            <label for="input-pass">Password</label>
+            <input type="password" class="form-control compact" id="input-pass">
+          </div>
+        </div>
+      </li>
+
+      <li class="list-group-item" id="caster-str">
+        <div class="item">
+          <label for="input-str">STR</label>
+          <input type="text" class="form-control compact" id="input-str">
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+  <section class="card" id="ntrips">
+    <header class="card-header">
+    <span class="switch switch-sm">
+      <input type="checkbox" id="switch-ntrips">
+      <label for="switch-ntrips"></label>
+    </span>
+      <h4 class="title">NTRIP Server</h4>
+      <h4><span class="status badge badge-pill badge-success" id="status-ntrips">Status</span></h4>
+    </header>
+
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item" id="server">
+        <div class="item">
+          <label class="big">RTCM Stream</label>
+          <span class="status badge badge-secondary">Status</span>
+          <small class="details" id="rtcm-stream-speed">XXX&nbsp;Mbit/s</small>
+        </div>
+      </li>
+
+      <li class="list-group-item" id="rtcm-target">
+        <div class="item">
+          <label>Target</label>
+          <span>[Connection details]</span>
+        </div>
+      </li>
+
+      <li class="list-group-item" id="rtcm-messages">
+        <p class="group-title">RTCM3 messages</p>
+        <table class="table rtcm-msgs-list table-borderless table-hover table-sm" id="table-rtcm-messages">
+          <tbody>
+            <tr>
+              <td class="msg-switch">
+                <span class="switch switch-xs">
+                  <input type="checkbox" id="switch-rtcm-1005">
+                  <label for="switch-rtcm-1005"></label>
+                </span>
+              </td>
+              <td class="msg-type">1005</td>
+              <td class="msg-description">[1005 msg description]</td>
+              <td class="msg-rate">
+                <div class="input-group compact">
+                  <select class="custom-select compact" id="select-rtcm-1005">
+                    <option selected>1</option>
+                    <option value="1">2</option>
+                    <option value="2">5</option>
+                  </select>
+                  <div class="input-group-append"><span class="input-group-text">s</span></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="msg-switch">
+                <span class="switch switch-xs">
+                  <input type="checkbox" id="switch-rtcm-1033">
+                  <label for="switch-rtcm-1033"></label>
+                </span>
+              </td>
+              <td class="msg-type">1033</td>
+              <td class="msg-description">[1033 message description that takes a bunch of space]</td>
+              <td class="msg-rate">
+                <select class="custom-select compact" id="select-rtcm-1033">
+                  <option selected>1 s</option>
+                  <option value="1">2 s</option>
+                  <option value="2">5 s</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+
+    </ul>
+  </section>
+
+</main>
+
+</body>
+
+</html>
