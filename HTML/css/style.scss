@@ -1,0 +1,351 @@
+// TODO: divide file into markup, style and widget-related sections / dedicated files
+// TODO: split changes to changelists
+// TODO: Set number-changing step when using arrows on number input field (currently is 1)
+// TODO: Reimplement items containers to implement grid layout
+
+html {
+  min-width: 400px;
+}
+
+body {
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: #dae0e5;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Card */
+.card {
+  flex-basis: 600px;
+  margin: 1rem;
+
+  &-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+
+    h4 {
+      margin: 0;
+    }
+
+    .title {
+      flex-grow: 1;
+      padding: 0 1rem;
+    }
+
+    .status {
+      font-weight: normal;
+    }
+  }
+
+  .list-group-item {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .group-title {
+    font-size: 1.25rem;
+    flex-basis: 0;
+    flex-grow: 1;
+  }
+
+  .group-content {
+    flex-grow: 1;
+    margin: 0.5rem 0 0.5rem 2rem;
+
+    &.item-container-multiline {
+      margin: 0.5rem 0 -0.5rem;
+    }
+  }
+}
+
+/* Item */
+.item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  &:not(:last-child) {
+    margin-bottom: 1rem;
+  }
+
+  > * {
+    flex-grow: 0;
+    margin-right: 1rem;
+  }
+
+  > *:last-child {
+    margin-right: 0;
+  }
+
+  > label {
+    flex-basis: 2rem;
+    margin: 0 1rem 0 0;
+    white-space: nowrap;
+
+    &.big {
+      font-size: 1.25rem;
+      flex-grow: 1;
+    }
+  }
+
+  .status {
+    font-weight: normal;
+    font-size: 1rem;
+    flex-grow: 0;
+  }
+}
+
+.list-group-item {
+  > .item {
+    width: 100%;
+
+    > label {
+      flex-grow: 1;
+      text-align: left;
+    }
+  }
+}
+
+.item-container-caption {
+  width: 100%;  // TODO: ?
+
+  &:not(:last-child) {
+    margin: 0 0 1rem;
+  }
+
+  > .item {
+    margin: 0 0 0.5rem;
+  }
+}
+
+.item-container-multiline {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  > .item {
+    flex-grow: 1;
+    margin-bottom: 1rem;
+    margin-left: 2rem;
+
+    &.fixed {
+      min-width: 1rem;
+      flex-grow: 0;
+    }
+  }
+}
+
+/* Table */
+.rtcm-msgs-list {
+  table-layout: fixed;
+
+  td {
+    vertical-align: baseline;
+    text-align: center;
+
+    &.msg-switch {
+      width: 3.5rem;
+    }
+
+    &.msg-type {
+      width: 3rem;
+    }
+
+    &.msg-description {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+
+    &.msg-rate {
+      width: 4.75rem;
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+#voltages {
+  .progress {
+    background: linear-gradient(
+      to right,
+      #f2f2f2 calc(50% - 1px),
+      #808080 calc(50% - 1px),
+      #808080 calc(50% + 1px),
+      #f2f2f2 calc(50% + 1px)
+    );
+  }
+
+  label {
+    flex: 0 0 2.75rem;
+  }
+}
+
+#ups-thresholds label {
+  flex: 0 0 4.5rem;
+}
+
+#input-port {
+  width: 4rem;
+}
+
+
+
+
+
+
+
+
+.item-container-multiline > .item {
+  &.xxl {flex-basis: 50rem;}
+  &.xl {flex-basis: 25rem;}
+  &.l {flex-basis: 15rem;}
+  &.m {flex-basis: 12rem;}
+  &.s {flex-basis: 10rem;}
+  &.xs  {flex-basis: 5rem;}
+}
+
+.input-group {
+  width: auto;
+  flex-wrap: nowrap;
+}
+
+.form-control {
+  min-width: 1rem;
+}
+
+.table {
+  margin: 0;
+}
+
+.item .input-group .form-control {
+  &[data-digits="1"] {
+    flex: 0 0 1.5rem;
+    width: 1.5rem;
+  }
+
+  &[data-digits="2"] {
+    flex: 0 0 2rem;
+    width: 2rem;
+  }
+
+  &[data-digits="3"] {
+    flex: 0 0 2.5rem;
+    width: 2.5rem;
+  }
+
+  &[data-digits="4"] {
+    flex: 0 0 3rem;
+    width: 3rem;
+  }
+
+  &[data-digits="8"] {
+    flex: 0 0 5.5rem;
+    width: 5.5rem;
+  }
+
+  &[data-digits="11"] {
+  flex: 0 0 7.0rem;
+  width: 7.0rem;
+  }
+
+  &[data-digits="11"] {
+  flex: 0 0 7.0rem;
+  width: 7.0rem;
+  }
+}
+
+.custom-select {
+  flex-grow: 0;
+  width: auto;
+}
+
+.progress {
+  flex: 1 1 15rem;
+  min-width: 10rem;
+}
+
+.custom-range {
+  flex: 1 1 10rem;
+  min-width: 5rem;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.add-on-coord {
+  width: 3rem;
+}
+
+.compact {
+  height: 1.75rem;
+  line-height: 1;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+
+  > .form-control,
+  > .input-group-append > span {
+    height: 1.75rem;
+    padding: 0.25rem;
+  }
+}
+
+.custom-select.compact {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+
+
+
+
+
+
+
+section:not(#ntrips) {
+  order: 1;
+}
+
+.progress-bar {
+  width: 30%;
+}
+
+.ruler > div {
+  display: inline-block;
+  height: 1.5rem;
+  padding-left: 0.2rem;
+  outline: 1px solid black;
+  text-align: left;
+
+  &:nth-child(1) {width: 1rem;}
+  &:nth-child(2) {width: 3rem;}
+  &:nth-child(3) {width: 5rem;}
+  &:nth-child(4) {width: 10rem;}
+  &:nth-child(5) {width: 25rem;}
+}
