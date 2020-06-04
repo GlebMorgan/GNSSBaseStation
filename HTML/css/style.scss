@@ -2,36 +2,70 @@
 // TODO: split changes to changelists
 // TODO: Set number-changing step when using arrows on number input field (currently is 1)
 // TODO: Reimplement items containers to implement grid layout
+// CONSIDER: Is it recommended to set * {padding: 0} ?
 
-$card-width: 35rem;
-$outer-padding: 1rem;
-$card-spacing: 1rem;
+
+$max-columns: 3;
+$outer-padding: 2rem;
+$outer-margin-base: 5rem;
+
+$card-min-width: 20rem;
+$card-width: 30rem;
+$card-max-width: 40rem;
+$card-spacing: 2rem;
 $card-content-padding: 2rem;
-$element-spacing: 1rem;
+
 $item-group-title-size: 1.25rem;
 $item-spacing: 1rem;
+$element-spacing: 1rem;
 
-html {
-  min-width: 400px;  // TODO
+
+@function outer-margin($n-columns) {
+  @return $outer-margin-base * ($n-columns - 1);
+}
+
+@function total-cards-width($width, $n-columns) {
+  @return $width*$n-columns + $card-spacing * ($n-columns - 1);
 }
 
 body {
-  margin: 0 auto;
+  min-width: $card-min-width + $outer-padding*2;
   padding: $outer-padding;
+  margin: 0;
   background-color: #dae0e5;
 }
 
 main {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  box-sizing: content-box;
+  max-width: $card-max-width;
+  margin: 0 auto;
+  column-count: 1;
+  column-gap: $card-spacing;
+
+  @for $i from 2 through $max-columns {
+    @media (min-width: total-cards-width($card-width, $i) + $outer-padding*2 + outer-margin($i)*2) {
+      column-count: $i;
+      max-width: total-cards-width($card-max-width, $i);
+      padding: 0 outer-margin($i);
+    }
+  }
 }
 
 /* Card */
 .card {
-  flex-basis: $card-width;
-  margin: $card-spacing;
+  margin: $card-spacing auto;
+  background-color: white;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 
   &-header {
     display: flex;
@@ -121,8 +155,6 @@ main {
 }
 
 .item-container-caption {
-  width: 100%;  // TODO: ?
-
   &:not(:last-child) {
     margin-bottom: $item-spacing;
   }
@@ -342,6 +374,7 @@ input[type=number] {
 
 .ruler > div {
   display: inline-block;
+  //display: none;
   height: 1.5rem;
   padding-left: 0.2rem;
   outline: 1px solid black;
