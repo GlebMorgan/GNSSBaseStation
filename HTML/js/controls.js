@@ -33,6 +33,22 @@ for (let item of items) {
     }
 }
 
-shutdown_voltage_slider = document.getElementById('slider-shutdown-threshold');
-recovery_voltage_slider = document.getElementById('slider-recovery-threshold');
-constrain_sliders_mutually(recovery_voltage_slider, shutdown_voltage_slider)
+let shutdownVoltageSlider = document.getElementById('slider-shutdown-threshold'),
+    recoveryVoltageSlider = document.getElementById('slider-recovery-threshold');
+constrain_sliders_mutually(recoveryVoltageSlider, shutdownVoltageSlider)
+
+let baseStationMode = document.getElementById('select-mode');
+let svinModeSection = document.getElementById('group-svin-mode'),
+    fixedModeSection = document.getElementById('group-fixed-mode');
+baseStationMode.addEventListener('change', function () {
+    if (this.value === 'disabled') {
+        svinModeSection.classList.add('disabled');
+        fixedModeSection.classList.add('disabled');
+    } else if (this.value === 'svin') {
+        svinModeSection.classList.remove('disabled');
+        fixedModeSection.classList.add('disabled');
+    } else if (this.value === 'fixed') {
+        svinModeSection.classList.add('disabled');
+        fixedModeSection.classList.remove('disabled');
+    }
+})
