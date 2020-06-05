@@ -1,6 +1,8 @@
 // TODO: divide file into markup, style and widget-related sections / dedicated files
 // TODO: Set number-changing step when using arrows on number input field (currently is 1)
 // TODO: Reimplement items containers to implement grid layout
+// TODO: Show / hide password eye button
+// TODO: Redesign footer to be normal 100% width element at the bottom, not card
 // CONSIDER: Is it recommended to set * {padding: 0} ?
 // CONSIDER: Make label inside .item-container-caption a part of .item element
 
@@ -211,6 +213,20 @@ main {
     &.msg-rate {
       width: 4.75rem;
     }
+  }
+}
+
+.buttons > .card-body {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+
+  button {
+    margin-left: 1rem;
+  }
+
+  span {
+    flex: 1 1 0;
   }
 }
 
