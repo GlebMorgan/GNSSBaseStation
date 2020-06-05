@@ -17,11 +17,7 @@
 </header>
 
 <main>
-  <!--
-  <div class="ruler">
-    <div>1</div><div>3</div><div>5</div><div>10</div><div>25</div>
-  </div>
-  -->
+
   <section class="card" id="power">
     <header class="card-header">
     <span class="switch switch-sm">
@@ -63,7 +59,7 @@
         <div class="group-content">
           <div class="item">
             <label for="slider-shutdown-threshold">Shutdown</label>
-            <input type="range" class="custom-range mid" id="slider-shutdown-threshold">
+            <input type="range" class="custom-range" id="slider-shutdown-threshold">
             <div class="input-group compact">
               <input type="number" class="form-control align-right" id="input-shutdown-threshold" data-digits="3">
               <div class="input-group-append"><span class="input-group-text">V</span></div>
@@ -71,7 +67,7 @@
           </div>
           <div class="item">
             <label for="slider-recovery-threshold">Recovery</label>
-            <input type="range" class="custom-range mid" id="slider-recovery-threshold">
+            <input type="range" class="custom-range" id="slider-recovery-threshold">
             <div class="input-group compact">
               <input type="number" class="form-control align-right" id="input-recovery-threshold" data-digits="3">
               <div class="input-group-append"><span class="input-group-text">V</span></div>
@@ -83,7 +79,7 @@
       <li class="list-group-item" id="poweroff-timeout">
         <div class="item">
           <label for="slider-poweroff-timeout">Poweroff timeout</label>
-          <input type="range" class="custom-range mid" id="slider-poweroff-timeout">
+          <input type="range" class="custom-range" id="slider-poweroff-timeout">
           <div class="input-group compact">
             <input type="number" class="form-control align-right" id="input-poweroff-timeout" data-digits="1">
             <div class="input-group-append"><span class="input-group-text">sec</span></div>
@@ -126,7 +122,7 @@
           <div class="item-container-caption">
             <label for="slider-acc-time">Coordinates observation time</label>
             <div class="item">
-              <input type="range" class="custom-range mid" id="slider-acc-time">
+              <input type="range" class="custom-range" id="slider-acc-time">
               <div class="input-group compact">
                 <input type="number" class="form-control align-right" id="input-acc-time" data-digits="3">
                 <div class="input-group-append"><span class="input-group-text">sec</span></div>
@@ -136,7 +132,7 @@
           <div class="item-container-caption">
             <label for="slider-accuracy">Required positional accuracy</label>
             <div class="item">
-              <input type="range" class="custom-range mid" id="slider-accuracy">
+              <input type="range" class="custom-range" id="slider-accuracy">
               <div class="input-group compact">
                 <input type="number" class="form-control align-right" id="input-accuracy" data-digits="3">
                 <div class="input-group-append"><span class="input-group-text">mm</span></div>
@@ -267,7 +263,7 @@
                 </span>
               </td>
               <td class="msg-type">1005</td>
-              <td class="msg-description">[1005 msg description]</td>
+              <td class="msg-description">1005 msg description</td>
               <td class="msg-rate">
                 <div class="input-group compact">
                   <select class="custom-select compact" id="select-rtcm-1005">
@@ -287,7 +283,7 @@
                 </span>
               </td>
               <td class="msg-type">1033</td>
-              <td class="msg-description">[1033 message description that takes a bunch of space]</td>
+              <td class="msg-description">1033 message description that takes a bunch of space</td>
               <td class="msg-rate">
                 <select class="custom-select compact" id="select-rtcm-1033">
                   <option selected>1 s</option>
@@ -302,6 +298,10 @@
 
     </ul>
   </section>
+
+  <div class="ruler">
+    <div>1</div><div>3</div><div>5</div><div>10</div><div>25</div>
+  </div>
 
 </main>
 
