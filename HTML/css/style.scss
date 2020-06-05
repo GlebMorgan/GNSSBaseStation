@@ -1,9 +1,8 @@
 // TODO: divide file into markup, style and widget-related sections / dedicated files
-// TODO: split changes to changelists
 // TODO: Set number-changing step when using arrows on number input field (currently is 1)
 // TODO: Reimplement items containers to implement grid layout
 // CONSIDER: Is it recommended to set * {padding: 0} ?
-
+// CONSIDER: Make label inside .item-container-caption a part of .item element
 
 $max-columns: 3;
 $outer-padding: 2rem;
@@ -239,7 +238,11 @@ main {
   }
 }
 
-#ups-thresholds label {
+#group-voltages label {
+  flex: 0 0 2.5rem;
+}
+
+#group-voltage-thresholds label {
   flex: 0 0 4.5rem;
 }
 
@@ -389,4 +392,8 @@ input[type=number] {
   &:nth-child(3) {width: 5rem;}
   &:nth-child(4) {width: 10rem;}
   &:nth-child(5) {width: 25rem;}
+}
+.item:hover {
+  // TODO: add padding to .item so the highlight is prettier
+  background-color: #00000005;
 }
