@@ -59,17 +59,21 @@
         <div class="group-content">
           <div class="item" id="shutdown-threshold">
             <label for="slider-shutdown-threshold">Shutdown</label>
-            <input type="range" class="custom-range" id="slider-shutdown-threshold">
+            <input type="range" class="custom-range" id="slider-shutdown-threshold"
+                   min="2" max="5" step="0.1" value="3.7">
             <div class="input-group compact">
-              <input type="number" class="form-control align-right" id="input-shutdown-threshold" data-digits="3">
+              <input type="number" class="form-control align-right"
+                     id="input-shutdown-threshold" data-digits="3" value="3.7">
               <div class="input-group-append"><span class="input-group-text">V</span></div>
             </div>
           </div>
           <div class="item" id="recovery-threshold">
             <label for="slider-recovery-threshold">Recovery</label>
-            <input type="range" class="custom-range" id="slider-recovery-threshold">
+            <input type="range" class="custom-range" id="slider-recovery-threshold"
+                   min="2" max="5" step="0.1" value="4.2">
             <div class="input-group compact">
-              <input type="number" class="form-control align-right" id="input-recovery-threshold" data-digits="3">
+              <input type="number" class="form-control align-right"
+                     id="input-recovery-threshold" data-digits="3" value="4.2">
               <div class="input-group-append"><span class="input-group-text">V</span></div>
             </div>
           </div>
@@ -79,9 +83,11 @@
       <li class="list-group-item" id="group-poweroff-timeout">
         <div class="item" id="poweroff-timeout">
           <label for="slider-poweroff-timeout">Poweroff timeout</label>
-          <input type="range" class="custom-range" id="slider-poweroff-timeout">
+          <input type="range" class="custom-range" id="slider-poweroff-timeout"
+                 min="0" max="8" step="0.1" value="3">
           <div class="input-group compact">
-            <input type="number" class="form-control align-right" id="input-poweroff-timeout" data-digits="1">
+            <input type="number" class="form-control align-right" id="input-poweroff-timeout"
+                   data-digits="3" value="3">
             <div class="input-group-append"><span class="input-group-text">sec</span></div>
           </div>
         </div>
@@ -122,9 +128,11 @@
           <div class="item-container-caption">
             <label for="slider-acc-time">Coordinates observation time</label>
             <div class="item" id="acc-time">
-              <input type="range" class="custom-range" id="slider-acc-time">
+              <input type="range" class="custom-range" id="slider-acc-time"
+              min="0" max="300" step="10" value="180">
               <div class="input-group compact">
-                <input type="number" class="form-control align-right" id="input-acc-time" data-digits="3">
+                <input type="number" class="form-control align-right" id="input-acc-time"
+                       data-digits="3" value="180">
                 <div class="input-group-append"><span class="input-group-text">sec</span></div>
               </div>
             </div>
@@ -132,9 +140,11 @@
           <div class="item-container-caption">
             <label for="slider-accuracy">Required positional accuracy</label>
             <div class="item" id="accuracy">
-              <input type="range" class="custom-range" id="slider-accuracy">
+              <input type="range" class="custom-range" id="slider-accuracy"
+              min="1" max="100" step="1" value="5">
               <div class="input-group compact">
-                <input type="number" class="form-control align-right" id="input-accuracy" data-digits="3">
+                <input type="number" class="form-control align-right" id="input-accuracy"
+                       data-digits="3" value="5">
                 <div class="input-group-append"><span class="input-group-text">mm</span></div>
               </div>
             </div>
@@ -304,6 +314,8 @@
   </div>
 
 </main>
+
+<script src="js/controls.js"></script>
 
 </body>
 
