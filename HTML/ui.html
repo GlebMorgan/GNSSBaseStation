@@ -30,34 +30,34 @@
 
     <ul class="list-group list-group-flush">
 
-      <li class="list-group-item" id="voltages">
+      <li class="list-group-item" id="group-voltages">
         <p class="group-title">Input voltages</p>
         <div class="group-content">
-          <div class="item">
+          <div class="item" id="usb-voltage">
             <label class="align-right">USB</label>
-            <div class="progress compact" id="usb-voltage">
+            <div class="progress compact" id="indicator-usb-voltage">
               <div class="progress-bar">5.07 V</div>
             </div>
           </div>
-          <div class="item">
+          <div class="item" id="lemo-voltage">
             <label class="align-right">LEMO</label>
-            <div class="progress compact" id="lemo-voltage">
+            <div class="progress compact" id="indicator-lemo-voltage">
               <div class="progress-bar">12.5 V</div>
             </div>
           </div>
-          <div class="item">
+          <div class="item" id="ups-voltage">
             <label class="align-right">UPS</label>
-            <div class="progress compact" id="ups-voltage">
+            <div class="progress compact" id="indicator-ups-voltage">
               <div class="progress-bar">4.33 V</div>
             </div>
           </div>
         </div>
       </li>
 
-      <li class="list-group-item" id="ups-thresholds">
+      <li class="list-group-item" id="group-voltage-thresholds">
         <p class="group-title">UPS&nbsp;voltage thresholds</p>
         <div class="group-content">
-          <div class="item">
+          <div class="item" id="shutdown-threshold">
             <label for="slider-shutdown-threshold">Shutdown</label>
             <input type="range" class="custom-range" id="slider-shutdown-threshold">
             <div class="input-group compact">
@@ -65,7 +65,7 @@
               <div class="input-group-append"><span class="input-group-text">V</span></div>
             </div>
           </div>
-          <div class="item">
+          <div class="item" id="recovery-threshold">
             <label for="slider-recovery-threshold">Recovery</label>
             <input type="range" class="custom-range" id="slider-recovery-threshold">
             <div class="input-group compact">
@@ -76,8 +76,8 @@
         </div>
       </li>
 
-      <li class="list-group-item" id="poweroff-timeout">
-        <div class="item">
+      <li class="list-group-item" id="group-poweroff-timeout">
+        <div class="item" id="poweroff-timeout">
           <label for="slider-poweroff-timeout">Poweroff timeout</label>
           <input type="range" class="custom-range" id="slider-poweroff-timeout">
           <div class="input-group compact">
@@ -102,8 +102,8 @@
 
     <ul class="list-group list-group-flush">
 
-      <li class="list-group-item" id="mode">
-        <div class="item">
+      <li class="list-group-item" id="group-mode">
+        <div class="item" id="mode">
           <label class="big" for="select-mode">Mode</label>
           <select class="custom-select compact" id="select-mode">
             <option selected>Disabled</option>
@@ -116,12 +116,12 @@
         </div>
       </li>
 
-      <li class="list-group-item" id="svin-mode">
+      <li class="list-group-item" id="group-svin-mode">
         <p class="group-title">Survey&#8209;in</p>
         <div class="group-content">
           <div class="item-container-caption">
             <label for="slider-acc-time">Coordinates observation time</label>
-            <div class="item">
+            <div class="item" id="acc-time">
               <input type="range" class="custom-range" id="slider-acc-time">
               <div class="input-group compact">
                 <input type="number" class="form-control align-right" id="input-acc-time" data-digits="3">
@@ -131,7 +131,7 @@
           </div>
           <div class="item-container-caption">
             <label for="slider-accuracy">Required positional accuracy</label>
-            <div class="item">
+            <div class="item" id="accuracy">
               <input type="range" class="custom-range" id="slider-accuracy">
               <div class="input-group compact">
                 <input type="number" class="form-control align-right" id="input-accuracy" data-digits="3">
@@ -142,32 +142,32 @@
         </div>
       </li>
 
-      <li class="list-group-item" id="fixed-mode">
+      <li class="list-group-item" id="group-fixed-mode">
         <p class="group-title">Fixed&#8209;mode</p>
         <div class="group-content">
-          <div class="item">
+          <div class="item" id="coord-system">
             <label for="select-coord-system">Coordinate system</label>
             <select class="custom-select compact" id="select-coord-system">
               <option selected>WGS-84</option>
             </select>
           </div>
-          <div class="item-container-caption" id="coords">
+          <div class="item-container-caption" id="group-coords">
             <label>Static coordinates</label>
-            <div class="item">
+            <div class="item" id="lat">
               <div class="input-group compact">
                 <div class="input-group-prepend"><span class="input-group-text add-on-coord">lat</span></div>
                 <input type="number" class="form-control" id="input-lat" data-digits="11">
                 <div class="input-group-append"><span class="input-group-text">&deg;</span></div>
               </div>
             </div>
-            <div class="item">
+            <div class="item" id="lon">
               <div class="input-group compact">
                 <div class="input-group-prepend"><span class="input-group-text add-on-coord">lon</span></div>
                 <input type="number" class="form-control" id="input-lon" data-digits="11">
                 <div class="input-group-append"><span class="input-group-text">&deg;</span></div>
               </div>
             </div>
-            <div class="item">
+            <div class="item" id="hgt">
               <div class="input-group compact">
                 <div class="input-group-prepend"><span class="input-group-text add-on-coord">hgt</span></div>
                 <input type="number" class="form-control" id="input-hgt" data-digits="8">
@@ -193,30 +193,30 @@
 
     <ul class="list-group list-group-flush">
 
-      <li class="list-group-item" id="caster">
+      <li class="list-group-item" id="group-caster-settings">
         <p class="group-title">Remote NTRIP&nbsp;caster</p>
         <div class="group-content item-container-multiline">
-          <div class="item xxl">
+          <div class="item xxl" id="caster-domain">
             <label for="input-domain">Domain</label>
             <input type="url" class="form-control compact" id="input-domain">
           </div>
-          <div class="item fixed">
+          <div class="item fixed" id="caster-port">
             <label class="align-right" for="input-port">Port</label>
             <input type="number" class="form-control compact" id="input-port">
           </div>
-          <div class="item m">
+          <div class="item m" id="caster-mountpoint">
             <label for="input-mountpoint">Mountpoint</label>
             <input type="text" class="form-control compact" id="input-mountpoint">
           </div>
-          <div class="item l">
+          <div class="item l" id="caster-pass">
             <label for="input-pass">Password</label>
             <input type="password" class="form-control compact" id="input-pass">
           </div>
         </div>
       </li>
 
-      <li class="list-group-item" id="caster-str">
-        <div class="item">
+      <li class="list-group-item" id="group-caster-str">
+        <div class="item" id="caster-str">
           <label for="input-str">STR</label>
           <input type="text" class="form-control compact" id="input-str">
         </div>
@@ -236,26 +236,26 @@
     </header>
 
     <ul class="list-group list-group-flush">
-      <li class="list-group-item" id="server">
-        <div class="item">
+      <li class="list-group-item" id="group-ntrips-status">
+        <div class="item" id="ntrips-status">
           <label class="big">RTCM Stream</label>
           <span class="status badge badge-secondary">Status</span>
           <small class="details" id="rtcm-stream-speed">XXX&nbsp;Mbit/s</small>
         </div>
       </li>
 
-      <li class="list-group-item" id="rtcm-target">
-        <div class="item">
+      <li class="list-group-item" id="group-rtcm-target">
+        <div class="item" id="rtcm-target">
           <label>Target</label>
           <span>[Connection details]</span>
         </div>
       </li>
 
-      <li class="list-group-item" id="rtcm-messages">
+      <li class="list-group-item" id="group-rtcm-messages">
         <p class="group-title">RTCM3 messages</p>
         <table class="table rtcm-msgs-list table-borderless table-hover table-sm" id="table-rtcm-messages">
           <tbody>
-            <tr>
+            <tr class="item" id="rtcm-1005">
               <td class="msg-switch">
                 <span class="switch switch-xs">
                   <input type="checkbox" id="switch-rtcm-1005">
@@ -275,7 +275,7 @@
                 </div>
               </td>
             </tr>
-            <tr>
+            <tr class="item" id="rtcm-1033">
               <td class="msg-switch">
                 <span class="switch switch-xs">
                   <input type="checkbox" id="switch-rtcm-1033">

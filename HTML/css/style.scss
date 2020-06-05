@@ -185,6 +185,10 @@ main {
 .rtcm-msgs-list {
   table-layout: fixed;
 
+  .item {
+    display: table-row;
+  }
+
   td {
     vertical-align: baseline;
     text-align: center;
