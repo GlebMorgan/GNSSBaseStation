@@ -1,19 +1,14 @@
 $card-width: 10rem;
 $card-max-width: 15rem;
 $card-spacing: 1rem;
-$col-width: $card-width + $card-spacing*2;
 $outer-margin: 2rem;
 
 * {
   box-sizing: border-box;
 }
 
-html {
-  min-width: $col-width;  // CONSIDER: assign to body
-}
-
 body {
-  //display: flex;
+  min-width: $card-width + $outer-margin*2;
   width: auto;
   margin: 0;
   padding: $outer-margin;
@@ -22,7 +17,8 @@ body {
 
 main {
   margin: 0 auto;
-  columns: $col-width 3;
+  column-width: $card-width + $card-spacing*2;
+  column-count: 3;
   column-gap: $card-spacing;
 }
 
