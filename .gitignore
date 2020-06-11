@@ -135,6 +135,10 @@ dmypy.json
 TEST*.*
 test*.*
 
+# Django - generated .css files
+/StatusServer/Configurator/static/ui_style.css
+/StatusServer/Configurator/static/ui_style.css.map
+
 # Others
 /ubxtool_items.txt
 /app/gps/

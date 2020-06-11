@@ -1,0 +1,432 @@
+// TODO: divide file into markup, style and widget-related sections / dedicated files
+// TODO: Set number-changing step when using arrows on number input field (currently is 1)
+// TODO: Reimplement items containers to implement grid layout
+// TODO: Show / hide password eye button
+// TODO: Redesign footer to be normal 100% width element at the bottom, not card
+// CONSIDER: Is it recommended to set * {padding: 0} ?
+// CONSIDER: Make label inside .item-container-caption a part of .item element
+
+$max-columns: 3;
+$outer-padding: 2rem;
+$outer-margin-base: 5rem;
+
+$card-min-width: 20rem;
+$card-width: 30rem;
+$card-max-width: 40rem;
+$card-spacing: 2rem;
+$card-content-padding: 2rem;
+
+$item-group-title-size: 1.25rem;
+$item-spacing: 1rem;
+$element-spacing: 1rem;
+
+
+@function outer-margin($n-columns) {
+  @return $outer-margin-base * ($n-columns - 1);
+}
+
+@function total-cards-width($width, $n-columns) {
+  @return $width*$n-columns + $card-spacing * ($n-columns - 1);
+}
+
+body {
+  min-width: $card-min-width + $outer-padding*2;
+  padding: $outer-padding;
+  margin: 0;
+  background-color: #dae0e5;
+}
+
+main {
+  box-sizing: content-box;
+  max-width: $card-max-width;
+  margin: 0 auto;
+  column-count: 1;
+  column-gap: $card-spacing;
+
+  @for $i from 2 through $max-columns {
+    @media (min-width: total-cards-width($card-width, $i) + $outer-padding*2 + outer-margin($i)*2) {
+      column-count: $i;
+      max-width: total-cards-width($card-max-width, $i);
+      padding: 0 outer-margin($i);
+    }
+  }
+}
+
+/* Card */
+.card {
+  margin: $card-spacing auto;
+  background-color: white;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+
+    h4 {
+      margin: 0;
+    }
+
+    .title {
+      flex-grow: 1;
+      padding: 0 $element-spacing;
+    }
+
+    .status {
+      font-weight: normal;
+    }
+  }
+
+  .list-group-item {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .group-title {
+    font-size: $item-group-title-size;
+    flex: 1 1 0;
+  }
+
+  .group-content {
+    flex-grow: 1;
+    margin: ($item-spacing/2) 0 ($item-spacing/2) $card-content-padding;
+
+    &.item-container-multiline {
+      margin: ($item-spacing/2) 0 (-$item-spacing/2);  /* Ducktape */
+    }
+  }
+}
+
+/* Item */
+.item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  &:not(:last-child) {
+    margin-bottom: $item-spacing;
+  }
+
+  > * {
+    flex-grow: 0;
+    margin-right: $element-spacing;
+  }
+
+  > *:last-child {
+    margin-right: 0;
+  }
+
+  > label {
+    flex-basis: 2rem;
+    margin-bottom: 0;
+    white-space: nowrap;
+
+    &.big {
+      font-size: $item-group-title-size;
+      flex-grow: 1;
+    }
+  }
+
+  .status {
+    font-weight: normal;
+    font-size: 100%;
+    flex-grow: 0;
+  }
+}
+
+.list-group-item {
+  > .item {
+    width: 100%;
+
+    > label {
+      flex-grow: 1;
+      text-align: left;
+    }
+  }
+}
+
+.item-container-caption {
+  &:not(:last-child) {
+    margin-bottom: $item-spacing;
+  }
+
+  > .item {
+    margin-bottom: $item-spacing/2;
+  }
+}
+
+.item-container-multiline {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  > .item {
+    flex-grow: 1;
+    margin-bottom: $item-spacing;
+    margin-left: $card-content-padding;
+
+    &.fixed {
+      min-width: 1rem;
+      flex-grow: 0;
+    }
+  }
+}
+
+/* Table */
+.rtcm-msgs-list {
+  table-layout: fixed;
+
+  .item {
+    display: table-row;
+  }
+
+  td {
+    vertical-align: baseline;
+    text-align: center;
+
+    &.msg-switch {
+      width: 2.5rem;
+    }
+
+    &.msg-type {
+      width: 3rem;
+    }
+
+    &.msg-description {
+      // TODO: limit height of the description cell to 2-3 lines
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+
+    &.msg-rate {
+      width: 4.75rem;
+    }
+  }
+}
+
+.buttons > .card-body {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+
+  button {
+    margin-left: 1rem;
+  }
+
+  span {
+    flex: 1 1 0;
+  }
+}
+
+
+
+
+
+
+
+
+
+#voltages {
+  .progress {
+    background: linear-gradient(
+      to right,
+      #f2f2f2 calc(50% - 1px),
+      #808080 calc(50% - 1px),
+      #808080 calc(50% + 1px),
+      #f2f2f2 calc(50% + 1px)
+    );
+  }
+
+  label {
+    flex: 0 0 2.75rem;
+  }
+}
+
+#group-voltages label {
+  flex: 0 0 2.5rem;
+}
+
+#group-voltage-thresholds label {
+  flex: 0 0 4.5rem;
+}
+
+#slider-accuracy {
+  direction: rtl;
+}
+
+#input-port {
+  width: 4rem;
+}
+
+
+
+
+
+
+
+
+.item-container-multiline > .item {
+  &.xxl {flex-basis: 50rem;}
+  &.xl {flex-basis: 25rem;}
+  &.l {flex-basis: 15rem;}
+  &.m {flex-basis: 12rem;}
+  &.s {flex-basis: 10rem;}
+  &.xs  {flex-basis: 5rem;}
+}
+
+.input-group {
+  width: auto;
+  flex-wrap: nowrap;
+}
+
+.form-control {
+  min-width: 1rem;
+}
+
+.table {
+  margin: 0;
+}
+
+.item .input-group .form-control {
+  &[data-digits="1"] {
+    flex: 0 0 1.5rem;
+    width: 1.5rem;
+  }
+
+  &[data-digits="2"] {
+    flex: 0 0 2rem;
+    width: 2rem;
+  }
+
+  &[data-digits="3"] {
+    flex: 0 0 2.5rem;
+    width: 2.5rem;
+  }
+
+  &[data-digits="4"] {
+    flex: 0 0 3rem;
+    width: 3rem;
+  }
+
+  &[data-digits="8"] {
+    flex: 0 0 5.5rem;
+    width: 5.5rem;
+  }
+
+  &[data-digits="11"] {
+  flex: 0 0 7.0rem;
+  width: 7.0rem;
+  }
+
+  &[data-digits="11"] {
+  flex: 0 0 7.0rem;
+  width: 7.0rem;
+  }
+}
+
+input:invalid {
+  background-color: #ff000040;
+}
+
+.custom-select {
+  flex-grow: 0;
+  width: auto;
+}
+
+.progress {
+  flex: 1 1 15rem;
+  min-width: 10rem;
+}
+
+.custom-range {
+  flex: 1 1 10rem;
+  min-width: 5rem;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.add-on-coord {
+  width: 3rem;
+}
+
+.list-group-item.disabled {
+  pointer-events: all;
+  cursor: not-allowed;
+}
+
+.list-group-item.disabled > * {
+  pointer-events: none;
+}
+
+.compact {
+  height: 1.75rem;
+  line-height: 1;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+
+  > .form-control,
+  > .input-group-append > span {
+    height: 1.75rem;
+    padding: 0.25rem;
+  }
+}
+
+.custom-select.compact {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+
+
+
+
+
+
+
+.progress-bar {
+  width: 30%;
+}
+
+.ruler > div {
+  display: inline-block;
+  //display: none;
+  height: 1.5rem;
+  padding-left: 0.2rem;
+  outline: 1px solid black;
+  text-align: left;
+
+  &:nth-child(1) {width: 1rem;}
+  &:nth-child(2) {width: 3rem;}
+  &:nth-child(3) {width: 5rem;}
+  &:nth-child(4) {width: 10rem;}
+  &:nth-child(5) {width: 25rem;}
+}
+.item:hover {
+  // TODO: add padding to .item so the highlight is prettier
+  background-color: #00000005;
+}

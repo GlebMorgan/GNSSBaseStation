@@ -15,8 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from . import views
+from StatusServer.views import status_table
+from Configurator.views import config_ui
 
 urlpatterns = [
-    path('', views.status_table)
+    path('', config_ui),
+    path('status/', status_table),
 ]

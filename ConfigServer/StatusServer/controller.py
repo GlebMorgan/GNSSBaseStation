@@ -116,5 +116,4 @@ def get_status(config):
             'Number of streams':    stream_status['streams'],
             'Connection status':    stream_status['info'].strip(),
         })
-
     return data

@@ -10,3 +10,9 @@ trim_trailing_whitespace = true
 
 [txt.txt]
 end_of_line = crlf
+
+[*.html]
+indent_size = 2
+
+[*.css]
+indent_size = 2
