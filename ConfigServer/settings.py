@@ -26,7 +26,10 @@ SECRET_KEY = '&3*+#7#ljd!+u#b=wb7$vgfna0nxjq^3*4a^%4y7za2ar26b#n'
 DEBUG = True
 
 # TODO: get IP automatically from system config
-ALLOWED_HOSTS = ['192.168.100.13']
+ALLOWED_HOSTS = [
+    '192.168.100.13',  # Rpi3
+    'localhost'        # Remote browser
+]
 
 
 # Application definition
