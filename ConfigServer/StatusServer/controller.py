@@ -16,7 +16,7 @@ class StreamStatus(Enum):
 
 def config_parse_test():
     timestamp_format = r'%Y/%m/%d %H:%M:%S'
-    str2str_regex = re.compile(r'(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
+    str2str_regex = re.compile(r'(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
                                r'\[(.{5})\]\s+(\d+ B)\s+(\d+ bps)'
                                r'(?:\s+\((\d+)\)\s+(.*))*')
 
@@ -39,7 +39,7 @@ def format_unit(value, unit):
 def get_str2str_status():
     logfile = Path('/home/pi/app/logs/str2str.log')
     fields = 'timestamp', 'state', 'received', 'rate', 'streams', 'info'
-    str2str_regex = re.compile(r'(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
+    str2str_regex = re.compile(r'(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
                                r'\[(.{5})\]\s+(\d+) B\s+(\d+) bps'
                                r'(?:\s+\((\d+)\)\s+(.*))*')
     if not logfile.exists():

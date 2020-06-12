@@ -3,6 +3,8 @@
 // TODO: Reimplement items containers to implement grid layout
 // TODO: Show / hide password eye button
 // TODO: Redesign footer to be normal 100% width element at the bottom, not card
+// TODO: Add shadow to cards
+
 // CONSIDER: Is it recommended to set * {padding: 0} ?
 // CONSIDER: Make label inside .item-container-caption a part of .item element
 
@@ -255,7 +257,7 @@ main {
 }
 
 #group-voltages label {
-  flex: 0 0 2.5rem;
+  flex: 0 0 2.75rem;
 }
 
 #group-voltage-thresholds label {
@@ -348,6 +350,10 @@ input:invalid {
 .progress {
   flex: 1 1 15rem;
   min-width: 10rem;
+}
+
+.progress-bar {
+    transition: width 0.5s ease-in-out;
 }
 
 .custom-range {

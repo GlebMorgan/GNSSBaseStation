@@ -1,4 +1,6 @@
-let items = document.getElementsByClassName('item');
+// TODO: power voltage levels update (.progress-bar 'data-level' attr)
+
+const items = document.getElementsByClassName('item');
 
 function bind_slider_input(slider, input) {
     slider.numericInput = input;
@@ -33,12 +35,12 @@ for (let item of items) {
     }
 }
 
-let shutdownVoltageSlider = document.getElementById('slider-shutdown-threshold'),
+const shutdownVoltageSlider = document.getElementById('slider-shutdown-threshold'),
     recoveryVoltageSlider = document.getElementById('slider-recovery-threshold');
 constrain_sliders_mutually(recoveryVoltageSlider, shutdownVoltageSlider)
 
-let baseStationMode = document.getElementById('select-mode');
-let svinModeSection = document.getElementById('group-svin-mode'),
+const baseStationMode = document.getElementById('select-mode'),
+    svinModeSection = document.getElementById('group-svin-mode'),
     fixedModeSection = document.getElementById('group-fixed-mode');
 baseStationMode.addEventListener('change', function () {
     if (this.value === 'disabled') {
