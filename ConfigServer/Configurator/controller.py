@@ -4,9 +4,9 @@ configView = {
     'power': {
         'active': True,
         'voltages': {
-            'usb': 5,
-            'lemo': 12,
-            'ups': 3.7,
+            'usb': {'min': 4, 'max': 6},
+            'lemo': {'min': 8, 'max': 20},
+            'ups': {'min': 3, 'max': 4.5},
         },
         'thresholds': {
             'shutdown': 3.7,

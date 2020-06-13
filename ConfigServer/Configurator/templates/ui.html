@@ -34,19 +34,22 @@
           <div class="group-content">
             <div class="item" id="usb-voltage">
               <label class="align-right">USB</label>
-              <div class="progress compact" id="usb-voltage-bar" data-voltage="{{ power.voltages.usb }}">
+              <div class="progress compact" id="usb-voltage-bar"
+                   data-min-voltage="{{ power.voltages.usb.min }}" data-max-voltage="{{ power.voltages.usb.max }}">
                 <div class="progress-bar"></div>
               </div>
             </div>
             <div class="item" id="lemo-voltage">
               <label class="align-right">LEMO</label>
-              <div class="progress compact" id="lemo-voltage-bar" data-voltage="{{ power.voltages.lemo }}">
+              <div class="progress compact" id="lemo-voltage-bar"
+                   data-min-voltage="{{ power.voltages.lemo.min }}" data-max-voltage="{{ power.voltages.lemo.max }}">
                 <div class="progress-bar"></div>
               </div>
             </div>
             <div class="item" id="ups-voltage">
               <label class="align-right">UPS</label>
-              <div class="progress compact" id="ups-voltage-bar" data-voltage="{{ power.voltages.ups }}">
+              <div class="progress compact" id="ups-voltage-bar"
+                   data-min-voltage="{{ power.voltages.ups.min }}" data-max-voltage="{{ power.voltages.ups.max }}">
                 <div class="progress-bar"></div>
               </div>
             </div>
