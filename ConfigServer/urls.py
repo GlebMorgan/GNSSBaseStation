@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from StatusServer.views import status_table
-from Configurator.views import config_ui, status_updates
+from Configurator.views import config_ui, status_updates, submit_config
 
 urlpatterns = [
     path('', config_ui, name='config'),
-    path('update/', status_updates, name='status-update'),
+    path('update/', status_updates, name='update-status'),
     path('status/', status_table, name='static-status'),
+    path('submit/', submit_config, name='submit-config'),
 ]

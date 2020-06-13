@@ -1,10 +1,14 @@
+import json
+import re
 from itertools import count
 from time import sleep
 
-from django.http import HttpResponse, StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from Configurator.controller import configView
-import json
+from django.urls import reverse
+
+from Configurator.controller import configView, RegexDict, Action
+
 
 def random_status_generator(rate):
     from random import random, choice
@@ -36,3 +40,36 @@ def config_ui(request):
 
 def status_updates(request):
     return StreamingHttpResponse(random_status_generator(rate=0.5), content_type='text/event-stream')
+
+def submit_config(request):
+
+    actionMapping = RegexDict({
+        'power': NotImplemented,
+        'power-shutdown-voltage': NotImplemented,
+        'power-recovery-voltage': NotImplemented,
+        'power-poweroff-timeout': NotImplemented,
+        'base': Action.switchBaseStation,
+        'base-mode': Action.alterConfig,
+        'base-observe': Action.alterConfig,
+        'base-accuracy': Action.alterConfig,
+        'base-coord-system': NotImplemented,
+        'base-coord-lat': Action.alterConfig,
+        'base-coord-lon': Action.alterConfig,
+        'base-coord-hgt': Action.alterConfig,
+        'ntripc': Action.switchCaster,
+        'ntripc-url': Action.alterConfig,
+        'ntripc-port': Action.alterConfig,
+        'ntripc-mountpoint': Action.alterConfig,
+        'ntripc-password': Action.alterConfig,
+        'ntripc-str': Action.alterConfig,
+        'ntrips': Action.switchServer,
+        re.compile(r'rtcm-(\d{4})'): Action.switchServer,
+        re.compile(r'rtcm-(\d{4})-rate'): NotImplemented,
+    })
+    newConfig = dict.fromkeys(('power', 'base', 'ntrips', 'ntripc'), ['off'])
+    newConfig.update(request.POST)
+
+    Action.dispatch(newConfig, actionMapping)
+
+    # return HttpResponseRedirect(reverse('static-status'))
+    return HttpResponseRedirect(reverse('config'))
