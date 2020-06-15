@@ -7,12 +7,13 @@
 
 // CONSIDER: Is it recommended to set * {padding: 0} ?
 // CONSIDER: Make label inside .item-container-caption a part of .item element
+// CONSIDER: Horizontally scrollable text in RTCM msgs descriptions
 
 $max-columns: 3;
 $outer-padding: 2rem;
 $outer-margin-base: 5rem;
 
-$card-min-width: 20rem;
+$card-min-width: 23rem;
 $card-width: 30rem;
 $card-max-width: 40rem;
 $card-spacing: 2rem;
@@ -62,11 +63,11 @@ main {
   page-break-inside: avoid;
   break-inside: avoid;
 
-  &:first-child {
+  &:first-of-type {
     margin-top: 0;
   }
 
-  &:last-child {
+  &:last-of-type {
     margin-bottom: 0;
   }
 
