@@ -29,7 +29,7 @@ function updateStatus(status) {
     }
 }
 
-const server = new EventSource("update/");
-server.onmessage = function(event) {
+const updateServer = new EventSource("update/");
+updateServer.onmessage = function(event) {
     updateStatus(JSON.parse(event.data));
 };

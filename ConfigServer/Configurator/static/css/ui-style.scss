@@ -219,7 +219,15 @@ main {
   }
 }
 
-.buttons > .card-body {
+
+
+
+
+
+
+
+
+#footer #group-buttons {
   display: flex;
   justify-content: flex-end;
   align-items: baseline;
@@ -227,19 +235,7 @@ main {
   button {
     margin-left: 1rem;
   }
-
-  span {
-    flex: 1 1 0;
-  }
 }
-
-
-
-
-
-
-
-
 
 #voltages {
   .progress {

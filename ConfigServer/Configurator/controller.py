@@ -61,7 +61,8 @@ configView = {
 
 def mvbs_handler(command, reconfigure_ublox=True):
     reconfigure_ublox_flag = '-c' if (command == 'restart' and reconfigure_ublox is True) else ''
-    run([str(MVBS_PATH), command, reconfigure_ublox_flag])
+    result = run([str(MVBS_PATH), command, reconfigure_ublox_flag])
+    return not bool(result.returncode)
 
 
 class RegexDict(dict):
@@ -144,6 +145,10 @@ class Action:
             msgs.remove(target_msg)
         elif target_msg not in msgs and value is True:
             msgs.append(target_msg)
+
+    @classmethod
+    def reset_uBlox(cls):
+        return mvbs_handler('reset', reconfigure_ublox=False)
 
     @classmethod
     def dispatch(cls, params: dict, mapping: dict):

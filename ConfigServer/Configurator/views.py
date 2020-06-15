@@ -1,9 +1,10 @@
 import json
 import re
 from itertools import count
+from subprocess import run
 from time import sleep
 
-from django.http import StreamingHttpResponse, HttpResponseRedirect
+from django.http import StreamingHttpResponse, HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -69,7 +70,25 @@ def submit_config(request):
     newConfig = dict.fromkeys(('power', 'base', 'ntrips', 'ntripc'), ['off'])
     newConfig.update(request.POST)
 
-    Action.dispatch(newConfig, actionMapping)
+    # TEMP: temporary disable reconfiguration not to break mvbs operation
+    # Action.dispatch(newConfig, actionMapping)
 
     # return HttpResponseRedirect(reverse('static-status'))
     return HttpResponseRedirect(reverse('config'))
+
+
+def reset_uBlox(request):
+    response = {}
+    query = request.POST['query']
+    if query == 'uBlox reset':
+        resetResult = Action.reset_uBlox()
+        if resetResult is False:
+            response['status'] = 'ERROR'
+            response['msg'] = 'uBlox reset error'
+        else:
+            response['status'] = 'OK'
+            response['msg'] = 'uBlox reset successful'
+    else:
+        response['status'] = 'BAD_QUERY'
+        response['msg'] = f"Unknown query {query}"
+    return HttpResponse(json.dumps(response), content_type='text/event-stream')

@@ -322,12 +322,23 @@
       </ul>
     </section>
 
-    <section class="card buttons" id="buttons">
-      <div class="card-body">
-        <span id="timestamp"></span>
-        <button class="btn btn-secondary" type="reset">Reset</button>
-        <button class="btn btn-success" type="submit" formmethod="post">Submit</button>
-      </div>
+    <section class="card" id="footer">
+      <ul class="list-group list-group-flush">
+
+        <li class="list-group-item" id="group-general">
+          <div class="item" id="time">
+            <label>Date/time</label>
+            <span id="timestamp"></span>
+          </div>
+        </li>
+
+        <li class="list-group-item" id="group-buttons">
+          <button class="btn btn-danger" type="reset" id="button-uBlox-reset">Reset &mu;Blox</button>
+          <button class="btn btn-secondary" type="reset">Reset</button>
+          <button class="btn btn-success" type="submit" formmethod="post">Submit</button>
+        </li>
+
+      </ul>
     </section>
 
   </form>
@@ -342,6 +353,7 @@
 
 <script src="{% static 'js/ui.js' %}"></script>
 <script src="{% static 'js/status.js' %}"></script>
+<script src="{% static 'js/reset-uBlox.js' %}"></script>
 
 </body>
 

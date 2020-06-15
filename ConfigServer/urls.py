@@ -16,11 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from StatusServer.views import status_table
-from Configurator.views import config_ui, status_updates, submit_config
+from Configurator.views import config_ui, status_updates, submit_config, reset_uBlox
 
 urlpatterns = [
     path('', config_ui, name='config'),
     path('update/', status_updates, name='update-status'),
     path('status/', status_table, name='static-status'),
     path('submit/', submit_config, name='submit-config'),
+    path('uBlox-reset/', reset_uBlox, name='reset-uBlox'),
 ]
