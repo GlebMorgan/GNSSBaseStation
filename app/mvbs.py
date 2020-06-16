@@ -27,6 +27,7 @@ from enum import Enum, Flag
 from os import mkfifo, pipe2, O_NONBLOCK
 from pathlib import Path
 from subprocess import run, Popen, DEVNULL, STDOUT
+from time import strftime
 from typing import Tuple
 
 import toml
@@ -46,6 +47,8 @@ UBX_CONFIG = PROJECT/'ubx_config.py'
 RTCM_PROXY = PROJECT/'rtcm_proxy.py'
 RTCM_PROXY_LOG = PROJECT/'logs'/f'{RTCM_PROXY.stem}.log'
 PID_FILE = Path('/run/user/bs/ntrips.pid')
+
+ACCUMULATIVE_LOGS = True
 
 str2str_process = None
 
@@ -133,8 +136,14 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict) 
 
     global str2str_process
     PID_FILE.touch()
+
+    if ACCUMULATIVE_LOGS:
+        log_file = STR2STR_LOG.with_name(STR2STR_LOG.stem + '_' + strftime('%d-%m-%Y_%H-%M-%S') + STR2STR_LOG.suffix)
+    else:
+        log_file = STR2STR_LOG
+
     str2str_process = Popen(str2str, encoding='utf-8', stdin=str2str_input,
-                            stdout=STR2STR_LOG.open('w'), stderr=STDOUT)
+                            stdout=log_file.open('w'), stderr=STDOUT)
     PID_FILE.write_text(str(str2str_process.pid))
 
     print("NTRIP server process spawned")
