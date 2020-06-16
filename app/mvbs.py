@@ -45,7 +45,7 @@ __version__ = "1.2"
 
 PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT/'config.toml'
-STR2STR = PROJECT/'str2str'
+STR2STR = PROJECT/'str2str-demo5'
 STR2STR_LOG = PROJECT/'logs'/f'{STR2STR.stem}.log'
 UBXTOOL = PROJECT/'ubxtool.py'
 RTCM_PROXY = PROJECT/'rtcm_proxy.py'
@@ -331,7 +331,7 @@ if __name__ == '__main__':
 
         elif command == 'state':
             if PID_FILE.exists():
-                if run('ps -C str2str', shell=True, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
+                if run(f'ps -C {STR2STR.name}', shell=True, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
                     print("'str2str' process has terminated unexpectedly")
                     PID_FILE.unlink()
                     state = "killed"
