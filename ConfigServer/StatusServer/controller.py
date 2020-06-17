@@ -31,6 +31,11 @@ def config_parse_test():
 
 
 def format_unit(value, unit, *, decimals=None):
+    """
+    Helper function to format value with unit using multiple and fractional prefixes
+    Round output value to 'decimals' digits after the decimal point if argument is provided
+    """
+
     prefixes = ['', 'k', 'M', 'G', 'T']
     order = min(int(log(value, 1000)), 4)
 
@@ -42,6 +47,10 @@ def format_unit(value, unit, *, decimals=None):
 
 
 def get_str2str_status(logfile: str = None):
+    """
+    Get str2str status Dict[str, str] of string parameters listed in 'fields' variable below
+    """
+
     logfile = Path(logfile or '/home/pi/app/logs/str2str.log')
     fields = 'timestamp', 'state', 'received', 'rate', 'streams', 'info'
     str2str_regex = re.compile(r'(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
@@ -64,6 +73,10 @@ def get_str2str_status(logfile: str = None):
 
 
 def get_ntrips_status():
+    """
+    Get current mvbs state: 'running', 'stopped', 'killed'
+    """
+
     mvbs_regex = re.compile(r'NTRIP server is (\S*)')
     args = ['python', '/home/pi/app/mvbs.py', 'state']
     result = run(args, text=True, capture_output=True).stdout
@@ -71,6 +84,10 @@ def get_ntrips_status():
 
 
 def get_zero2go_status():
+    """
+    Get Tuple[int, int, int] of zero2go input channels (chA, chB, chC)
+    """
+
     command = 'bash -c ". /home/pi/zero2go/utilities.sh && read_channel_A && read_channel_B && read_channel_C"'
     # In case of failure, result will be bare 0
     raw = run(command, capture_output=True, shell=True, text=True).stdout.split()
