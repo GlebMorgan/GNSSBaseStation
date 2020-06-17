@@ -1,6 +1,10 @@
+import json
 import re
+from datetime import datetime
+from itertools import count
 from pathlib import Path
 from subprocess import run
+from time import sleep
 
 import toml
 
@@ -9,9 +13,11 @@ PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT/'config.toml'
 MVBS_PATH = PROJECT/'mvbs.py'
 MVBS_PID_FILE = Path('/run/user/bs/ntrips.pid')
+STR2STR = PROJECT/'str2str-demo5'
+STR2STR_LOG = PROJECT/'logs'/f'{STR2STR.stem}.log'
 
 CONFIG = toml.load(str(CONFIG_FILE))
-
+UPDATE_PERIOD = 5
 
 configView = {
     'power': {
@@ -43,7 +49,7 @@ configView = {
     'ntripc': {
         'active': True,
         'domain': 'https://rtk2go.com',
-        'port': '2021',
+        'port': 2021,
         'mountpoint': 'test',
         'pass': 'password',
         'str': 'Testing;RTCM 3.1;1008(1);1;GPS;SNIP;BY;27.00;54.00;0;0;sNTRIP;;None;B;N;0;',
@@ -57,6 +63,136 @@ configView = {
         ],
     },
 }
+
+
+def random_status_generator(rate):
+    from random import random, choice
+    from time import strftime
+    tempers = ('primary', 'secondary', 'success', 'info', 'warning', 'danger', 'dark')
+
+    for n in count():
+        statusView = [
+            {'name': 'power-status', 'value': f'Power status {n}', 'temper': choice(tempers)},
+            {'name': 'base-status', 'value': f'Base status {n}', 'temper': choice(tempers)},
+            {'name': 'ntripc-status', 'value': f'NTRIPC status {n}', 'temper': choice(tempers)},
+            {'name': 'ntrips-status', 'value': f'NTRIPS status {n}', 'temper': choice(tempers)},
+            {'name': 'usb-voltage-bar', 'value': f'{4.75+random()/2:.2f}V'},
+            {'name': 'lemo-voltage-bar', 'value': f'{12.1+random():.2f}V'},
+            {'name': 'ups-voltage-bar', 'value': f'{3.7+random()/3:.2f}V'},
+            {'name': 'base-details', 'value': 'Some base details'},
+            {'name': 'rtcm-stream-status', 'value': 'RTCM status'},
+            {'name': 'rtcm-stream-speed', 'value': f'{round(random()*100, 1)} KBit/s'},
+            {'name': 'rtcm-stream-details', 'value': 'RTCM stream details'},
+            {'name': 'timestamp', 'value': strftime('%d.%m.%Y %H:%M:%S')},
+        ]
+
+        yield f'data: {json.dumps(statusView)}\n\n'
+        sleep(rate)
+
+
+def status_updater():
+    for n in count():
+        yield f'data: {json.dumps(get_config_updates())}\n\n'
+        sleep(UPDATE_PERIOD)
+
+
+def get_rtk2go_status(caster_config):
+    if 'rtk2go' not in caster_config['domain'].lower():
+        return 'Unknown'
+    url = 'http://rtk2go.com:{config[port]}/SNIP::MOUNTPT?NAME={config[mountpoint]}'.format(config=caster_config)
+    result = run(['curl', '-s', url], text=True, capture_output=True)
+    if result.returncode != 0:
+        # NTEO:Sometimes RTK2Go replies with no data => curl fails with returncode 52
+        return 'Unreachable'
+    elif 'Base Station Mount Point Details:' not in result.stdout:
+        return 'Down'
+    else:
+        return 'Up'
+
+
+def get_config_updates():
+    from StatusServer.controller import get_str2str_status, get_ntrips_status, get_zero2go_status, format_unit
+    from StatusServer.controller import StreamStatus
+
+    str2str_timestamp_fmt = r'%Y/%m/%d %H:%M:%S'
+    target_timestamp_fmt = r'%d.%m.%Y %H:%M:%S'
+
+    voltages = get_zero2go_status()
+    active_channel = ('usb', 'lemo', 'ups')[voltages.index(max(voltages))]
+
+    base_status = get_ntrips_status()
+    if base_status == 'running':
+        base_temper = 'success'
+        str2str_details = get_str2str_status(STR2STR_LOG)
+        if str2str_details:
+            server_status = 'Up'
+            server_temper = 'success'
+            timestamp = datetime.strptime(str2str_details['timestamp'], str2str_timestamp_fmt)
+        else:
+            server_status = 'Error'
+            server_temper = 'warning'
+            timestamp = datetime.now()
+    else:
+        base_temper = {
+            'killed': 'danger',
+            'stopped': 'dark'
+        }.get(base_status, 'warning')
+        str2str_details = {
+            'state': ('Down', 'Down'),
+            'received': 0,
+            'rate': 0,
+            'streams': 0,
+            'info': '',
+        }
+        server_status = 'Down'
+        server_temper = 'dark'
+        timestamp = datetime.now()
+
+    caster_status = get_rtk2go_status(CONFIG['NTRIPC'])
+    caster_temper = {
+        'Unknown': 'danger',
+        'Unreachable': 'secondary',
+        'Down': 'dark',
+        'Up': 'success',
+    }.get(caster_status, 'warning')
+
+    base_mode_description = {
+        'disabled': 'Rover mode',
+        'svin': 'Coordinates are determined dynamically',
+        'fixed': 'Coordinates specified below are used'
+    }
+
+    stream_status_tempers = {
+        'Down': 'dark',
+        'Error': 'danger',
+        'Closed': 'secondary',
+        'Waiting': 'warning',
+        'Connected': 'success',
+    }
+
+    rtcm_status = {
+        'input': StreamStatus(str2str_details['state'][0]).name,
+        'output': StreamStatus(str2str_details['state'][1]).name,
+    }
+
+    return [
+    {'name': 'power-status', 'value': active_channel.upper(), 'temper': 'success'},
+    {'name': 'base-status', 'value': base_status.upper(), 'temper': base_temper},
+    {'name': 'ntripc-status', 'value': caster_status.upper(), 'temper': caster_temper},
+    {'name': 'ntrips-status', 'value': server_status.upper(), 'temper': server_temper},
+    {'name': 'usb-voltage-bar', 'value': f'{voltages[0]}V'},
+    {'name': 'lemo-voltage-bar', 'value': f'{voltages[1]}V'},
+    {'name': 'ups-voltage-bar', 'value': f'{voltages[2]}V'},  # may be useful: format = :.2f
+    {'name': 'base-details', 'value': base_mode_description[CONFIG['BASE']['mode'].lower()]},
+    {'name': 'rtcm-input-stream-status', 'value': rtcm_status['input'],
+                                         'temper': stream_status_tempers[rtcm_status['input']]},
+    {'name': 'rtcm-input-stream-details', 'value': format_unit(int(str2str_details['rate']), 'B', decimals=2)},
+    {'name': 'rtcm-output-stream-status', 'value': rtcm_status['output'],
+                                          'temper': stream_status_tempers[rtcm_status['output']]},
+    {'name': 'rtcm-output-stream-details', 'value': format_unit(int(str2str_details['received']), 'B/s', decimals=2)},
+    {'name': 'rtcm-stream-details', 'value': str2str_details['info']},
+    {'name': 'timestamp', 'value': datetime.strftime(timestamp, target_timestamp_fmt)},
+    ]
 
 
 def mvbs_handler(command, reconfigure_ublox=True):

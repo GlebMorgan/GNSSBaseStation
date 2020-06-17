@@ -30,14 +30,19 @@ def config_parse_test():
     print(stats[5])
 
 
-def format_unit(value, unit):
+def format_unit(value, unit, *, decimals=None):
     prefixes = ['', 'k', 'M', 'G', 'T']
     order = min(int(log(value, 1000)), 4)
-    return "{:.5g} {}{}".format(value/(1000 ** order or 1), prefixes[order], unit)
+
+    result = value / (1000 ** order or 1)
+    if round:
+        result = round(result, decimals)
+
+    return "{:.5g} {}{}".format(result, prefixes[order], unit)
 
 
-def get_str2str_status():
-    logfile = Path('/home/pi/app/logs/str2str.log')
+def get_str2str_status(logfile: str = None):
+    logfile = Path(logfile or '/home/pi/app/logs/str2str.log')
     fields = 'timestamp', 'state', 'received', 'rate', 'streams', 'info'
     str2str_regex = re.compile(r'(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
                                r'\[(.{5})\]\s+(\d+) B\s+(\d+) bps'
@@ -69,7 +74,7 @@ def get_zero2go_status():
     command = 'bash -c ". /home/pi/zero2go/utilities.sh && read_channel_A && read_channel_B && read_channel_C"'
     # In case of failure, result will be bare 0
     raw = run(command, capture_output=True, shell=True, text=True).stdout.split()
-    return tuple(f'{x} V' for x in raw) if len(raw) == 3 else None
+    return tuple(raw) if len(raw) == 3 else None
 
 
 def get_status(config):
@@ -102,9 +107,9 @@ def get_status(config):
         data['Input voltage'] = "Error"
     else:
         data.update({
-            'USB input voltage': voltages[0],
-            'Lemo input voltage': voltages[1],
-            'Battery voltage': voltages[2],
+            'USB input voltage': f'{voltages[0]} V',
+            'Lemo input voltage': f'{voltages[1]} V',
+            'Battery voltage': f'{voltages[2]} V',
         })
 
     if stream_status is not None:

@@ -48,7 +48,8 @@ RTCM_PROXY = PROJECT/'rtcm_proxy.py'
 RTCM_PROXY_LOG = PROJECT/'logs'/f'{RTCM_PROXY.stem}.log'
 PID_FILE = Path('/run/user/bs/ntrips.pid')
 
-ACCUMULATIVE_LOGS = True
+# NOTE: ACCUMULATIVE_LOGS break configurator UI updates
+ACCUMULATIVE_LOGS = False
 
 str2str_process = None
 
