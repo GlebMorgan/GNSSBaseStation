@@ -21,7 +21,7 @@ function updateStatus(status) {
                 'current': parseFloat(item.value),
             }
             let barLength = (voltage.current - voltage.min) / (voltage.max - voltage.min);
-            element.children[0].style.width = `${constrain(barLength * 100, 10, 100)}%`;
+            element.children[0].style.width = `${constrain(barLength * 100, 0, 100)}%`;
         }
         else {
             element.innerHTML = item.value;

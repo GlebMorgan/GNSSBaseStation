@@ -135,6 +135,9 @@ dmypy.json
 TEST*.*
 test*.*
 
+# Backups
+*.bak
+
 # Django - generated .css files
 /StatusServer/Configurator/static/ui_style.css
 /StatusServer/Configurator/static/ui_style.css.map
