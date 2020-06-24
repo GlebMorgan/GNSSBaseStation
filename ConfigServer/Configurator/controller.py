@@ -292,7 +292,17 @@ class Action:
 
     @classmethod
     def reset_uBlox(cls):
-        return mvbs_handler('reset', reconfigure_ublox=False)
+        results = [
+            mvbs_handler('stop'),
+            mvbs_handler('reset'),
+            mvbs_handler('start'),
+        ]
+        if all(returncode == 0 for returncode in results):
+            return 0
+        elif results[1] != 0:
+            return results[1]
+        else:
+            return max(results)
 
     @classmethod
     def dispatch(cls, params: dict, mapping: dict):

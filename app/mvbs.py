@@ -402,7 +402,8 @@ if __name__ == '__main__':
 
         elif command == 'reset':
             if PID_FILE.exists():
-                stop_server()
+                print("NTRIP server is running, cannot reset. Stop with 'mvbs stop'")
+                exit(1)
 
             exitcode = reset_ublox(config['BASE'], config['SERIAL'])
             print(f"Receiver reset {'failed' if exitcode else 'success'}")
