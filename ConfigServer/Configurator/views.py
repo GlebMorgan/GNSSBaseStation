@@ -38,7 +38,7 @@ def submit_config(request):
         'ntripc-password': Action.alterConfig,
         'ntripc-str': Action.alterConfig,
         'ntrips': Action.switchServer,
-        re.compile(r'rtcm-(\d{4})'): Action.switchServer,
+        re.compile(r'rtcm-(\d{4})'): Action.injectRTCM,
         re.compile(r'rtcm-(\d{4})-rate'): NotImplemented,
     })
     newConfig = dict.fromkeys(('power', 'base', 'ntrips', 'ntripc'), ['off'])

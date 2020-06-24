@@ -63,8 +63,24 @@ def getConfigView():
         'ntrips': {
             'active': base_status == 'running',
             'msgs': [
-                {'id': 1005, 'enabled': True, 'description': '1005 message description', 'speed': 1},
-                {'id': 1033, 'disabled': True, 'description': '1033 message description', 'speed': 5},
+                {
+                    'id': 1006,
+                    'enabled': 1006 in CONFIG['NTRIPS']['inject'],
+                    'description': 'Stationary RTK Reference Station ARP with Antenna Height',
+                    'speed': 1,
+                },
+                {
+                    'id': 1008,
+                    'enabled': 1008 in CONFIG['NTRIPS']['inject'],
+                    'description': 'Antenna Descriptor and Serial Number',
+                    'speed': 1,
+                },
+                {
+                    'id': 1033,
+                    'enabled': 1033 in CONFIG['NTRIPS']['inject'],
+                    'description': 'Receiver and Antenna Descriptors',
+                    'speed': 5,
+                },
             ],
         },
     }
@@ -247,6 +263,7 @@ class Action:
 
     mvbs_action = None
     config_changed = False
+    inject = []
     flags = []
 
     @classmethod
@@ -295,6 +312,12 @@ class Action:
             msgs.append(target_msg)
 
     @classmethod
+    def injectRTCM(cls, item, value):
+        msg_num = re.search(r'rtcm-(\d*)', item).groups()[0]
+        if value == 'on':
+            cls.inject.append(int(msg_num))
+
+    @classmethod
     def reset_uBlox(cls):
         results = [
             mvbs_handler('stop'),
@@ -317,6 +340,10 @@ class Action:
             if handler not in (None, NotImplemented):
                 handler(key, value[0])
 
+        if set(cls.inject) != set(CONFIG['NTRIPS']['inject']):
+            CONFIG['NTRIPS']['inject'] = cls.inject
+            cls.config_changed = True
+
         if MVBS_PID_FILE.exists() and cls.config_changed:
             cls.mvbs_action = 'restart'
 
@@ -333,4 +360,5 @@ class Action:
 
         cls.mvbs_action = None
         cls.config_changed = False
+        cls.inject = []
         cls.flags = []

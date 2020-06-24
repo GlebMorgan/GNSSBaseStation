@@ -287,43 +287,29 @@
           <p class="group-title">RTCM3 messages</p>
           <table class="table rtcm-msgs-list table-borderless table-hover table-sm" id="table-rtcm-messages">
             <tbody>
-              <tr class="item" id="rtcm-1005">
-                <td class="msg-switch">
-                  <span class="switch switch-xs">
-                    <input name="rtcm-1005" type="checkbox" id="switch-rtcm-1005">
-                    <label for="switch-rtcm-1005"></label>
-                  </span>
-                </td>
-                <td class="msg-type">1005</td>
-                <td class="msg-description">1005 msg description</td>
-                <td class="msg-rate">
-                  <div class="input-group compact">
-                    <select name="rtcm-1005-rate" class="custom-select compact" id="select-rtcm-1005">
-                      <option selected>1</option>
-                      <option value="1">2</option>
-                      <option value="2">5</option>
-                    </select>
-                    <div class="input-group-append"><span class="input-group-text">s</span></div>
-                  </div>
-                </td>
-              </tr>
-              <tr class="item" id="rtcm-1033">
-                <td class="msg-switch">
-                  <span class="switch switch-xs">
-                    <input name="rtcm-1033" type="checkbox" id="switch-rtcm-1033">
-                    <label for="switch-rtcm-1033"></label>
-                  </span>
-                </td>
-                <td class="msg-type">1033</td>
-                <td class="msg-description">1033 message description that takes a bunch of space</td>
-                <td class="msg-rate">
-                  <select name="rtcm-1033-rate" class="custom-select compact" id="select-rtcm-1033">
-                    <option selected>1 s</option>
-                    <option value="1">2 s</option>
-                    <option value="2">5 s</option>
-                  </select>
-                </td>
-              </tr>
+              {% for msg in ntrips.msgs %}
+                <tr class="item" id="rtcm-{{ msg.id }}">
+                  <td class="msg-switch">
+                    <span class="switch switch-xs">
+                      <input name="rtcm-{{ msg.id }}" type="checkbox" id="switch-rtcm-{{ msg.id }}"
+                             {% if msg.enabled %} checked {% endif %}>
+                      <label for="switch-rtcm-{{ msg.id }}"></label>
+                    </span>
+                  </td>
+                  <td class="msg-type">{{ msg.id }}</td>
+                  <td class="msg-description">{{ msg.description }}</td>
+                  <td class="msg-rate">
+                    <div class="input-group compact">
+                      <select name="rtcm-{{ msg.id }}-rate" class="custom-select compact" id="select-rtcm-{{ msg.id }}">
+                        <option {% if msg.speed == 1 %} selected {% endif %} value="1">1</option>
+                        <option {% if msg.speed == 2 %} selected {% endif %}value="2">2</option>
+                        <option {% if msg.speed == 5 %} selected {% endif %}value="5">5</option>
+                      </select>
+                      <div class="input-group-append"><span class="input-group-text">s</span></div>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
             </tbody>
           </table>
         </li>
