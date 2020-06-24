@@ -53,7 +53,7 @@ def getConfigView():
 
         'ntripc': {
             'active': base_status == 'running',  # Remove from UI
-            'domain': 'https://' + CONFIG['NTRIPC']['domain'],
+            'domain': CONFIG['NTRIPC']['domain'],
             'port': CONFIG['NTRIPC']['port'],
             'mountpoint': CONFIG['NTRIPC']['mountpoint'],
             'pass': CONFIG['NTRIPC']['password'],

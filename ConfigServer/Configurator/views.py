@@ -32,7 +32,7 @@ def submit_config(request):
         'base-coord-lon': Action.alterConfig,
         'base-coord-hgt': Action.alterConfig,
         'ntripc': Action.switchCaster,
-        'ntripc-url': Action.alterConfig,
+        'ntripc-domain': Action.alterConfig,
         'ntripc-port': Action.alterConfig,
         'ntripc-mountpoint': Action.alterConfig,
         'ntripc-password': Action.alterConfig,
