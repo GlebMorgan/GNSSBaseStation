@@ -107,7 +107,7 @@ def test(*args) -> int:
     return 0
 
 
-def start_server(serial_config: dict, server_config: dict, caster_config: dict) -> int:
+def start_server(serial_config: dict, server_config: dict, caster_config: dict, *, verbose: int = False) -> int:
 
     in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**serial_config)
     out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**caster_config)
@@ -120,7 +120,8 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict) 
             inject = tuple(str(msgid) for msgid in server_config['inject'])
 
         pipe_output, pipe_input = pipe2(O_NONBLOCK)
-        str2str = f'{STR2STR}', '-out', f'ntrips://{out_spec}'
+        verbose = ('-t', str(verbose)) if verbose is not False else ()
+        str2str = f'{STR2STR}', '-out', f'ntrips://{out_spec}', *verbose
         str2str_input = pipe_output
         rtcm_proxy = 'python', f'{RTCM_PROXY}', '-in', f'serial://{in_spec}', '-a', f'{server_config["anchor"]}', \
                      '-m', *inject, '-i', f'{server_config["interval"]}', '-l', str(RTCM_PROXY_LOG)
@@ -319,7 +320,11 @@ if __name__ == '__main__':
                 print("Receiver auto-config is disabled")
                 print("Could be enabled with 'BASE.autoconfig = true' in config.toml")
 
-            die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC']))
+            verbosity = False
+            if '-v' in sys.argv:
+                verbosity = 5
+
+            die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'], verbose=verbosity))
 
         elif command == 'restart':
             if not PID_FILE.exists():
