@@ -19,50 +19,53 @@ STR2STR_LOG = PROJECT/'logs'/f'{STR2STR.stem}.log'
 CONFIG = toml.load(str(CONFIG_FILE))
 UPDATE_PERIOD = 5
 
-configView = {
-    'power': {
-        'active': True,
-        'voltages': {
-            'usb': {'min': 4, 'max': 6},
-            'lemo': {'min': 8, 'max': 20},
-            'ups': {'min': 3, 'max': 4.5},
-        },
-        'thresholds': {
-            'shutdown': 3.7,
-            'recovery': 4.2,
-        },
-        'timeout': 3,
-    },
 
-    'base': {
-        'active': True,
-        'mode': 'fixed',
-        'observe': 180,
-        'accuracy': 5,
-        'coords': {
-            'lat': 27.5590547,
-            'lon': 53.9006643,
-            'hgt': 289,
+def getConfigView():
+    base_status = get_ntrips_status()
+    return {
+        'power': {
+            'active': True,  # Remove from UI
+            'voltages': {
+                'usb': {'min': 4, 'max': 6},
+                'lemo': {'min': 8, 'max': 20},
+                'ups': {'min': 3, 'max': 4.5},
+            },
+            'thresholds': {
+                'shutdown': CONFIG['POWER']['shutdown'],
+                'recovery': CONFIG['POWER']['recovery'],
+            },
+            'timeout': CONFIG['POWER']['timeout'],
         },
-    },
 
-    'ntripc': {
-        'active': True,
-        'domain': 'https://rtk2go.com',
-        'port': 2021,
-        'mountpoint': 'test',
-        'pass': 'password',
-        'str': 'Testing;RTCM 3.1;1008(1);1;GPS;SNIP;BY;27.00;54.00;0;0;sNTRIP;;None;B;N;0;',
-    },
+        'base': {
+            'active': base_status == 'running',
+            'mode': CONFIG['BASE']['mode'].lower(),
+            'observe': CONFIG['BASE']['observe'],
+            'accuracy': CONFIG['BASE']['accuracy'],
+            'coords': {
+                'lat': CONFIG['BASE']['lat'],
+                'lon': CONFIG['BASE']['lon'],
+                'hgt': CONFIG['BASE']['hgt'],
+            },
+        },
 
-    'ntrips': {
-        'active': False,
-        'msgs': [
-            {'id': 1005, 'enabled': True, 'description': '1005 message description', 'speed': 1},
-            {'id': 1033, 'disabled': True, 'description': '1033 message description', 'speed': 5},
-        ],
-    },
-}
+        'ntripc': {
+            'active': base_status == 'running',  # Remove from UI
+            'domain': 'https://' + CONFIG['NTRIPC']['domain'],
+            'port': CONFIG['NTRIPC']['port'],
+            'mountpoint': CONFIG['NTRIPC']['mountpoint'],
+            'pass': CONFIG['NTRIPC']['password'],
+            'str': CONFIG['NTRIPC']['str'],
+        },
+
+        'ntrips': {
+            'active': base_status == 'running',
+            'msgs': [
+                {'id': 1005, 'enabled': True, 'description': '1005 message description', 'speed': 1},
+                {'id': 1033, 'disabled': True, 'description': '1033 message description', 'speed': 5},
+            ],
+        },
+    }
 
 
 def random_status_generator(rate):

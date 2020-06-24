@@ -5,11 +5,11 @@ from django.http import StreamingHttpResponse, HttpResponseRedirect, HttpRespons
 from django.shortcuts import render
 from django.urls import reverse
 
-from Configurator.controller import configView, RegexDict, Action, status_updater
+from Configurator.controller import RegexDict, Action, status_updater, getConfigView
 
 
 def config_ui(request):
-    context = {'pageTitle': "ZED F9P Config", **configView}
+    context = {'pageTitle': "ZED F9P Config", **getConfigView()}
     return render(request, 'ui.html', context)
 
 
@@ -44,8 +44,7 @@ def submit_config(request):
     newConfig = dict.fromkeys(('power', 'base', 'ntrips', 'ntripc'), ['off'])
     newConfig.update(request.POST)
 
-    # TEMP: temporary disable reconfiguration not to break mvbs operation
-    # Action.dispatch(newConfig, actionMapping)
+    Action.dispatch(newConfig, actionMapping)
 
     # return HttpResponseRedirect(reverse('static-status'))
     return HttpResponseRedirect(reverse('config'))
