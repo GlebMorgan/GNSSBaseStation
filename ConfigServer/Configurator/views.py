@@ -1,7 +1,7 @@
 import json
 import re
 
-from django.http import StreamingHttpResponse, HttpResponseRedirect, HttpResponse, HttpResponseForbidden
+from django.http import StreamingHttpResponse, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -43,16 +43,17 @@ def submit_config(request):
     })
     newConfig = dict.fromkeys(('power', 'base', 'ntrips', 'ntripc'), ['off'])
     newConfig.update(request.POST)
+    # print(*(f'{key}: {value}' for key, value in newConfig.items()), sep='\n')
 
     Action.dispatch(newConfig, actionMapping)
 
-    # return HttpResponseRedirect(reverse('static-status'))
     return HttpResponseRedirect(reverse('config'))
 
 
 def reset_uBlox(request):
     response = {}
     query = request.POST['query']
+
     if query == 'uBlox reset':
         resetResult = Action.reset_uBlox()
         if resetResult is False:
@@ -64,4 +65,5 @@ def reset_uBlox(request):
     else:
         response['status'] = 'BAD_QUERY'
         response['msg'] = f"Unknown query {query}"
+
     return HttpResponse(json.dumps(response), content_type='text/event-stream')

@@ -468,7 +468,7 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print("\n\n--- Script interrupted by SIGINT ---\n")
-        die(exitcode)
+        die(0)
 
     except Exception as e:
         print(f'{e.__class__.__name__}: {e or "<No details>"}')

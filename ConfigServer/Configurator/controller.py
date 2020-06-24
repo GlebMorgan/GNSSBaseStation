@@ -6,9 +6,10 @@ from pathlib import Path
 from subprocess import run
 from time import sleep
 
-from StatusServer.controller import get_str2str_status, get_ntrips_status, get_zero2go_status, format_unit
-from StatusServer.controller import StreamStatus
 import toml
+
+from StatusServer.controller import StreamStatus
+from StatusServer.controller import get_str2str_status, get_ntrips_status, get_zero2go_status, format_unit
 
 
 PROJECT = Path('/home/pi/app')
@@ -19,14 +20,14 @@ STR2STR = PROJECT / 'str2str-demo5'
 STR2STR_LOG = PROJECT / 'logs' / f'{STR2STR.stem}.log'
 
 CONFIG = toml.load(str(CONFIG_FILE))
-UPDATE_PERIOD = 5
+UPDATE_PERIOD = 1
 
 
 def getConfigView():
     base_status = get_ntrips_status()
     return {
         'power': {
-            'active': True,  # Remove from UI
+            'active': True,
             'voltages': {
                 'usb': {'min': 4, 'max': 6},
                 'lemo': {'min': 8, 'max': 20},
@@ -52,7 +53,7 @@ def getConfigView():
         },
 
         'ntripc': {
-            'active': base_status == 'running',  # Remove from UI
+            'active': base_status == 'running',
             'domain': CONFIG['NTRIPC']['domain'],
             'port': CONFIG['NTRIPC']['port'],
             'mountpoint': CONFIG['NTRIPC']['mountpoint'],
@@ -120,8 +121,10 @@ def status_updater():
 def get_rtk2go_status(caster_config):
     if 'rtk2go' not in caster_config['domain'].lower():
         return 'Unknown'
+
     url = 'http://rtk2go.com:{config[port]}/SNIP::MOUNTPT?NAME={config[mountpoint]}'.format(config=caster_config)
     result = run(['curl', '-s', url], text=True, capture_output=True)
+
     if result.returncode != 0:
         # NOTE: Sometimes RTK2Go replies with no data => curl fails with returncode 52
         return 'Unreachable'
@@ -266,7 +269,6 @@ class RegexDict(dict):
 
 
 class Action:
-
     mvbs_action = None
     config_changed = False
     inject = []
@@ -279,7 +281,7 @@ class Action:
 
         try:
             value = type(currentValue)(value)
-        except TypeError as e:
+        except TypeError:
             raise TypeError(f"Failed to change configuration: "
                             f"invalid parameter type {type(value)}, expected {type(currentValue)}")
 
@@ -339,8 +341,8 @@ class Action:
 
     @classmethod
     def dispatch(cls, params: dict, mapping: dict):
-        # params: Dict[<subset of Action.MAPPING>, <one-element lists>] - expected POST request here
-        # mapping: Dict[<ui element names>, <method names>] - maps frontend controls to config actions
+        # params: Dict[<ui element names>, <one-element lists (values)>] - expected POST request here
+        # mapping: Dict[<ui element names>, <handler method names>] - maps frontend controls to config actions
         for key, value in params.items():
             handler = mapping.get(key, None)
             if handler not in (None, NotImplemented):

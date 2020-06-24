@@ -31,7 +31,7 @@ password = 'shadow12'
 str = ''
 
 [BASE]
-autoconfig = true
+autoconfig = false
 # Static basestation configuration file
 configfile = '~/uBlox_config_base_devoffice_MSM4.txt'
 # VALSET memory level = 'RAM', 'BBR', 'FLASH', 'ALL'

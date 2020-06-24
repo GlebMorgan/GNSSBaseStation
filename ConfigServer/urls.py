@@ -13,10 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path
-from StatusServer.views import status_table
+
 from Configurator.views import config_ui, status_updates, submit_config, reset_uBlox
+from StatusServer.views import status_table
+
 
 urlpatterns = [
     path('', config_ui, name='config'),
