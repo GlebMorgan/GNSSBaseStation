@@ -66,7 +66,7 @@
               <input type="range" class="custom-range" id="slider-shutdown-threshold"
                      min="2" max="5" step="0.1" value="{{ power.thresholds.shutdown }}">
               <div class="input-group compact">
-                <input name="power-shutdown-voltage" type="number"
+                <input name="power-shutdown" type="number"
                        class="form-control align-right" id="input-shutdown-threshold"
                        data-digits="3" min="2" max="5" step="0.1" value="{{ power.thresholds.shutdown }}">
                 <div class="input-group-append"><span class="input-group-text">V</span></div>
@@ -77,7 +77,7 @@
               <input type="range" class="custom-range" id="slider-recovery-threshold"
                      min="2" max="5" step="0.1" value="{{ power.thresholds.recovery }}">
               <div class="input-group compact">
-                <input name="power-recovery-voltage" type="number"
+                <input name="power-recovery" type="number"
                        class="form-control align-right" id="input-recovery-threshold"
                        data-digits="3" min="2" max="5" step="0.1" value="{{ power.thresholds.recovery }}">
                 <div class="input-group-append"><span class="input-group-text">V</span></div>
@@ -92,7 +92,7 @@
             <input type="range" class="custom-range" id="slider-poweroff-timeout"
                    min="0" max="8" step="0.1" value="{{ power.timeout }}">
             <div class="input-group compact">
-              <input name="power-poweroff-timeout" type="number"
+              <input name="power-timeout" type="number"
                      class="form-control align-right" id="input-poweroff-timeout"
                      data-digits="3" min="0" max="8" step="0.1" value="{{ power.timeout }}">
               <div class="input-group-append"><span class="input-group-text">sec</span></div>

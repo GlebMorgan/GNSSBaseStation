@@ -198,9 +198,8 @@ def get_config_updates():
     ]
 
 
-def mvbs_handler(command, reconfigure_ublox=True):
-    reconfigure_ublox_flag = '-c' if (command == 'restart' and reconfigure_ublox is True) else ''
-    result = run([str(MVBS_PATH), command, reconfigure_ublox_flag])
+def mvbs_handler(command, flags=()):
+    result = run([str(MVBS_PATH), command, *flags])
     return not bool(result.returncode)
 
 
@@ -240,7 +239,8 @@ class RegexDict(dict):
 class Action:
 
     mvbs_action = None
-    ublox_restart = None
+    config_changed = False
+    flags = []
 
     @classmethod
     def alterConfig(cls, item, value):
@@ -254,11 +254,16 @@ class Action:
                             f"invalid parameter type {type(value)}, expected {type(currentValue)}")
 
         if value != currentValue:
+            cls.config_changed = True
             CONFIG[module.upper()][parameter] = value
 
-        cls.ublox_restart = parameter.startswith('base-')
-        if cls.mvbs_action != 'stop':
-            cls.mvbs_action = 'restart'
+            if parameter.startswith('base-'):
+                cls.flags.append('-c')
+            if parameter.startswith('power-'):
+                cls.flags.append('-z')
+
+            if cls.mvbs_action != 'stop':
+                cls.mvbs_action = 'restart'
 
     @classmethod
     def switchBaseStation(cls, item, value):
@@ -298,9 +303,15 @@ class Action:
             if handler not in (None, NotImplemented):
                 handler(key, value[0])
 
-        print(cls.mvbs_action)
-        mvbs_handler(cls.mvbs_action, reconfigure_ublox=cls.ublox_restart)
+        print(f"Action: {cls.mvbs_action}")
+        if cls.mvbs_action:
+            mvbs_handler(cls.mvbs_action, flags=cls.flags)
 
-        with CONFIG_FILE.open('tw', encoding='utf-8') as file:
-            toml.dump(CONFIG, file)
-            # TODO: preserve comments
+        if cls.config_changed:
+            with CONFIG_FILE.open('tw', encoding='utf-8') as file:
+                toml.dump(CONFIG, file)
+                # TODO: preserve comments
+
+        cls.mvbs_action = None
+        cls.config_changed = False
+        cls.flags = []

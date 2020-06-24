@@ -20,9 +20,9 @@ def status_updates(request):
 def submit_config(request):
     actionMapping = RegexDict({
         'power': NotImplemented,
-        'power-shutdown-voltage': NotImplemented,
-        'power-recovery-voltage': NotImplemented,
-        'power-poweroff-timeout': NotImplemented,
+        'power-shutdown': Action.alterConfig,
+        'power-recovery': Action.alterConfig,
+        'power-timeout': Action.alterConfig,
         'base': Action.switchBaseStation,
         'base-mode': Action.alterConfig,
         'base-observe': Action.alterConfig,

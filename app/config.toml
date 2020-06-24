@@ -3,6 +3,11 @@ tracelevel = 'DEBUG'
 autostart = true
 status_update_rate = 5
 
+[POWER]
+shutdown = 3.2
+recovery = 4.2
+timeout = 3
+
 [SERIAL]
 # Name of serial device in /dev
 port = 'serial0'

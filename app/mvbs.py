@@ -90,6 +90,13 @@ class MLevel(FlagEnum):
     ALL   = 0b111
 
 
+class Zero2GoError(OSError):
+    """ Error while communication with Zero2Go module """
+    def __init__(self, *args, returncode=1):
+        super().__init__(*args)
+        self.returncode = returncode
+
+
 def die(returncode=0):
     print(f"Exiting ({returncode})")
     sys.exit(returncode)
@@ -274,6 +281,53 @@ def reset_ublox(receiver_params: dict, serial_params: dict) -> int:
     return returncode
 
 
+def i2c_read(register):
+    result = run(['i2cget', '-y', '0x01', '0x29', register], text=True, capture_output=True)
+    if result.returncode or not result.stdout:
+        msg = f'Read {register} register failed: ' + result.stderr.strip() or '<No details>'
+        raise Zero2GoError(msg, returncode=result.returncode)
+    return result.stdout
+
+
+def i2c_write(register, value, verify=True):
+    print(f'''Debug: write command: {' '.join(['i2cset', '-y', '0x01', '0x29', register, value])}''')
+    result = run(['i2cset', '-y', '0x01', '0x29', register, value], text=True, capture_output=True)
+    if result.returncode or not result.stdout:
+        msg = f'Write {value} to {register} register failed: ' + result.stderr.strip() or '<No details>'
+        raise Zero2GoError(msg, returncode=result.returncode)
+    if verify:
+        confirm = run(['i2cget', '-y', '0x01', '0x29', register], text=True, capture_output=True)
+        if confirm.stdout != value:
+            raise Zero2GoError('Write check failed: ' + confirm.stderr.strip() or '<No details>')
+
+
+def config_zero2go(config):
+    status = {
+        'shutdown threshold': {
+            'register': 12,
+            'current': int(i2c_read('12'), 0) / 10,
+            'target': config['shutdown'],
+            'convert': lambda val: int(val * 10),
+        },
+        'recovery threshold': {
+            'register': 15,
+            'current': int(i2c_read('15'), 0) / 10,
+            'target': config['recovery'],
+            'convert': lambda val: int(val * 10),
+        },
+        'poweroff timeout': {
+            'register': 14,
+            'current': int(i2c_read('14'), 0) / 10,
+            'target': config['timeout'],
+            'convert': lambda val: int(val * 10),
+        }
+    }
+
+    for item in status.values():
+        if item['current'] != item['target']:
+            i2c_write(str(item['register']), str(item['convert'](item['target'])))
+
+
 if __name__ == '__main__':
     try:
         print(f"Environment: '{PROJECT}'")
@@ -289,6 +343,7 @@ if __name__ == '__main__':
         command = sys.argv[1]
 
         if command == 'test':
+            config_zero2go(config['POWER'])
             die(test(config))
 
         if command == 'stop':
@@ -330,7 +385,16 @@ if __name__ == '__main__':
                     print("Receiver configuration was not completed, restart failed")
                     die(exitcode)
                 else:
-                    print("Receiver is reconfigured")
+                    print("Receiver is reconfigured successfully")
+
+            if '-z' in sys.argv:
+                try:
+                    config_zero2go(config['POWER'])
+                except Zero2GoError as e:
+                    print(f"Zero2Go configuration was not completed: {e}")
+                    die(e.returncode)
+                else:
+                    print("Zero2Go is reconfigured successfully")
 
             exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
             print(f"NTRIP server restart {'failed' if exitcode else 'success'}")
