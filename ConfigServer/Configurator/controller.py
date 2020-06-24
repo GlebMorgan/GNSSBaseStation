@@ -258,6 +258,12 @@ class RegexDict(dict):
         else:
             super().__delitem__(key)
 
+    def get(self, item, default=None):
+        try:
+            return self.__getitem__(item)
+        except KeyError:
+            return default
+
 
 class Action:
 
