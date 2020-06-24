@@ -37,7 +37,7 @@ def format_unit(value, unit, *, decimals=None):
     """
 
     prefixes = ['', 'k', 'M', 'G', 'T']
-    order = min(int(log(value, 1000)), 4)
+    order = min(int(log(value, 1000)), 4) if value > 0 else 0
 
     result = value / (1000 ** order or 1)
     if round:
