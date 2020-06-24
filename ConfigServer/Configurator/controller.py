@@ -16,8 +16,6 @@ PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT / 'config.toml'
 MVBS_PATH = PROJECT / 'mvbs.py'
 MVBS_PID_FILE = Path('/run/user/bs/ntrips.pid')
-STR2STR = PROJECT / 'str2str-demo5'
-STR2STR_LOG = PROJECT / 'logs' / f'{STR2STR.stem}.log'
 
 CONFIG = toml.load(str(CONFIG_FILE))
 UPDATE_PERIOD = 1
@@ -145,7 +143,7 @@ def get_config_updates():
     str2str_details = None
     if base_status == 'running':
         base_temper = 'success'
-        str2str_details = get_str2str_status(STR2STR_LOG)
+        str2str_details = get_str2str_status()
         if str2str_details:
             server_status = 'Up'
             server_temper = 'success'

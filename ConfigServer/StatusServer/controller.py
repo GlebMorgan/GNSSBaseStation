@@ -50,8 +50,10 @@ def get_str2str_status(logfile: str = None):
     """
     Get str2str status Dict[str, str] of string parameters listed in 'fields' variable below
     """
+    if logfile is None:
+        logfiles = Path('/home/pi/app/logs').glob('str2str*.log')
+        logfile = max(logfiles, key=lambda file: file.stat().st_mtime)
 
-    logfile = Path(logfile or '/home/pi/app/logs/str2str.log')
     fields = 'timestamp', 'state', 'received', 'rate', 'streams', 'info'
     str2str_regex = re.compile(r'(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+'
                                r'\[(.{5})\]\s+(\d+) B\s+(\d+) bps'

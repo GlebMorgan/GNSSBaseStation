@@ -50,7 +50,7 @@ PID_FILE = Path('/run/user/bs/ntrips.pid')
 SERVER_PID_FILE = Path('/run/user/bs/django.pid')
 
 # NOTE: ACCUMULATIVE_LOGS break configurator UI updates
-ACCUMULATIVE_LOGS = False
+ACCUMULATIVE_LOGS = True
 
 str2str_process = None
 
@@ -429,7 +429,9 @@ if __name__ == '__main__':
 
         elif command == 'log':
             max_lines = int(sys.argv[2]) if len(sys.argv) == 3 else None
-            lines = STR2STR_LOG.read_text(encoding='utf-8', errors='replace').split('\n')
+            logfiles = STR2STR_LOG.parent.glob(STR2STR.stem + '*.log')
+            logfile = max(logfiles, key=lambda file: file.stat().st_mtime)
+            lines = logfile.read_text(encoding='utf-8', errors='replace').split('\n')
             print(*lines[-(max_lines or 0):], sep='\n')
 
         elif command == 'server':
