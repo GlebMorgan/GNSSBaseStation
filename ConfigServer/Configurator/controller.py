@@ -12,11 +12,11 @@ import toml
 
 
 PROJECT = Path('/home/pi/app')
-CONFIG_FILE = PROJECT/'config.toml'
-MVBS_PATH = PROJECT/'mvbs.py'
+CONFIG_FILE = PROJECT / 'config.toml'
+MVBS_PATH = PROJECT / 'mvbs.py'
 MVBS_PID_FILE = Path('/run/user/bs/ntrips.pid')
-STR2STR = PROJECT/'str2str-demo5'
-STR2STR_LOG = PROJECT/'logs'/f'{STR2STR.stem}.log'
+STR2STR = PROJECT / 'str2str-demo5'
+STR2STR_LOG = PROJECT / 'logs' / f'{STR2STR.stem}.log'
 
 CONFIG = toml.load(str(CONFIG_FILE))
 UPDATE_PERIOD = 5
@@ -81,12 +81,12 @@ def random_status_generator(rate):
             {'name': 'base-status', 'value': f'Base status {n}', 'temper': choice(tempers)},
             {'name': 'ntripc-status', 'value': f'NTRIPC status {n}', 'temper': choice(tempers)},
             {'name': 'ntrips-status', 'value': f'NTRIPS status {n}', 'temper': choice(tempers)},
-            {'name': 'usb-voltage-bar', 'value': f'{4.75+random()/2:.2f}V'},
-            {'name': 'lemo-voltage-bar', 'value': f'{12.1+random():.2f}V'},
-            {'name': 'ups-voltage-bar', 'value': f'{3.7+random()/3:.2f}V'},
+            {'name': 'usb-voltage-bar', 'value': f'{4.75 + random() / 2:.2f}V'},
+            {'name': 'lemo-voltage-bar', 'value': f'{12.1 + random():.2f}V'},
+            {'name': 'ups-voltage-bar', 'value': f'{3.7 + random() / 3:.2f}V'},
             {'name': 'base-details', 'value': 'Some base details'},
             {'name': 'rtcm-stream-status', 'value': 'RTCM status'},
-            {'name': 'rtcm-stream-speed', 'value': f'{round(random()*100, 1)} KBit/s'},
+            {'name': 'rtcm-stream-speed', 'value': f'{round(random() * 100, 1)} KBit/s'},
             {'name': 'rtcm-stream-details', 'value': 'RTCM stream details'},
             {'name': 'timestamp', 'value': strftime('%d.%m.%Y %H:%M:%S')},
         ]
@@ -107,7 +107,7 @@ def get_rtk2go_status(caster_config):
     url = 'http://rtk2go.com:{config[port]}/SNIP::MOUNTPT?NAME={config[mountpoint]}'.format(config=caster_config)
     result = run(['curl', '-s', url], text=True, capture_output=True)
     if result.returncode != 0:
-        # NTEO:Sometimes RTK2Go replies with no data => curl fails with returncode 52
+        # NOTE: Sometimes RTK2Go replies with no data => curl fails with returncode 52
         return 'Unreachable'
     elif 'Base Station Mount Point Details:' not in result.stdout:
         return 'Down'
@@ -138,7 +138,7 @@ def get_config_updates():
     else:
         base_temper = {
             'killed': 'danger',
-            'stopped': 'dark'
+            'stopped': 'dark',
         }.get(base_status, 'warning')
 
         server_status = 'Down'
