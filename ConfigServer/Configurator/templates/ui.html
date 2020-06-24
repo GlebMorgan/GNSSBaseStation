@@ -21,10 +21,10 @@
 
     <section class="card" id="power">
       <header class="card-header">
-      <span class="switch switch-sm">
-        <input name="power" type="checkbox" id="switch-power" {% if power.active %}checked{% endif %}>
-        <label for="switch-power"></label>
-      </span>
+        <span class="switch switch-sm">
+          <input name="power" type="checkbox" id="switch-power" {% if power.active %} checked {% endif %}>
+          <label for="switch-power"></label>
+        </span>
         <h4 class="title">Power</h4>
         <h4><span class="status badge badge-pill" id="power-status"></span></h4>
       </header>
@@ -105,10 +105,10 @@
 
     <section class="card" id="base">
       <header class="card-header">
-      <span class="switch switch-sm">
-        <input name="base" type="checkbox" id="switch-base" {% if base.active %}checked{% endif %}>
-        <label for="switch-base"></label>
-      </span>
+        <span class="switch switch-sm">
+          <input name="base" type="checkbox" id="switch-base" {% if base.active %} checked {% endif %}>
+          <label for="switch-base"></label>
+        </span>
         <h4 class="title">Base station</h4>
         <h4><span class="status badge badge-pill" id="base-status"></span></h4>
       </header>
@@ -127,7 +127,7 @@
           </div>
         </li>
 
-        <li class="list-group-item disabled" id="group-svin-mode">
+        <li class="list-group-item {% if base.mode != 'svin' %} disabled {% endif %}" id="group-svin-mode">
           <p class="group-title">Survey&#8209;in</p>
           <div class="group-content">
             <div class="item-container-caption">
@@ -157,7 +157,7 @@
           </div>
         </li>
 
-        <li class="list-group-item disabled" id="group-fixed-mode">
+        <li class="list-group-item {% if base.mode != 'fixed' %} disabled {% endif %}" id="group-fixed-mode">
           <p class="group-title">Fixed&#8209;mode</p>
           <div class="group-content">
             <div class="item" id="coord-system">
@@ -201,10 +201,10 @@
 
     <section class="card" id="ntripc">
       <header class="card-header">
-      <span class="switch switch-sm">
-        <input name="ntripc" type="checkbox" id="switch-ntripc" {% if ntripc.active %}checked{% endif %}>
-        <label for="switch-ntripc"></label>
-      </span>
+        <span class="switch switch-sm">
+          <input name="ntripc" type="checkbox" id="switch-ntripc" {% if ntripc.active %} checked {% endif %}>
+          <label for="switch-ntripc"></label>
+        </span>
         <h4 class="title">NTRIP Caster</h4>
         <h4><span class="status badge badge-pill" id="ntripc-status"></span></h4>
       </header>
@@ -250,10 +250,10 @@
 
     <section class="card" id="ntrips">
       <header class="card-header">
-      <span class="switch switch-sm">
-        <input name="ntrips" type="checkbox" id="switch-ntrips" {% if ntrips.active %}checked{% endif %}>
-        <label for="switch-ntrips"></label>
-      </span>
+        <span class="switch switch-sm">
+          <input name="ntrips" type="checkbox" id="switch-ntrips" {% if ntrips.active %} checked {% endif %}>
+          <label for="switch-ntrips"></label>
+        </span>
         <h4 class="title">NTRIP Server</h4>
         <h4><span class="status badge badge-pill" id="ntrips-status"></span></h4>
       </header>
