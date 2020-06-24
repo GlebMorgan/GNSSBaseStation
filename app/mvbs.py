@@ -52,6 +52,7 @@ UBXTOOL = PROJECT/'ubxtool.py'
 RTCM_PROXY = PROJECT/'rtcm_proxy.py'
 RTCM_PROXY_LOG = PROJECT/'logs'/f'{RTCM_PROXY.stem}.log'
 PID_FILE = Path('/run/user/bs/ntrips.pid')
+SERVER_PID_FILE = Path('/run/user/bs/django.pid')
 
 ACCUMULATIVE_LOGS = True
 
@@ -153,20 +154,20 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict) 
     return 0
 
 
-def stop_server() -> int:
-    print("Terminating NTRIP server... ")
-    str2str_pid = PID_FILE.read_text().strip()
-    result = run(f'kill -INT {str2str_pid}', shell=True, text=True, capture_output=True)
+def stop_server(pid_file, name) -> int:
+    print(f"Terminating {name}... ")
+    pid = pid_file.read_text().strip()
+    result = run(f'kill -INT {pid}', shell=True, text=True, capture_output=True)
 
     if result.stdout:
         print(f"Got unexpected result from 'kill' command: {result.stdout.decode()}")
     if result.returncode != 0:
-        print("Failed to terminate NTRIP server process")
+        print(f"Failed to terminate {name} process")
     else:
-        print(f"Terminated process #{str2str_pid}")
+        print(f"Terminated process #{pid}")
 
-    if PID_FILE.exists():
-        PID_FILE.unlink()
+    if pid_file.exists():
+        pid_file.unlink()
 
     return result.returncode
 
@@ -297,7 +298,7 @@ if __name__ == '__main__':
             if not PID_FILE.exists():
                 print("NTRIP server is not running")
                 die(0)
-            die(stop_server())
+            die(stop_server(PID_FILE, 'NTRIP server'))
 
         elif command == 'start':
             if PID_FILE.exists():
@@ -324,7 +325,7 @@ if __name__ == '__main__':
             if not PID_FILE.exists():
                 print("NTRIP server is not running")
             else:
-                stop_server()
+                stop_server(PID_FILE, 'NTRIP server')
 
             if '-c' in sys.argv:
                 exitcode = config_ublox(config['BASE'], config['SERIAL'])
@@ -349,6 +350,40 @@ if __name__ == '__main__':
             else:
                 state = "stopped"
             print(f"NTRIP server is {state}")
+
+        elif command == 'log':
+            max_lines = int(sys.argv[2]) if len(sys.argv) == 3 else None
+            lines = STR2STR_LOG.read_text(encoding='utf-8', errors='replace').split('\n')
+            print(*lines[-(max_lines or 0):], sep='\n')
+
+        elif command == 'server':
+            if len(sys.argv) < 3:
+                # Command is missing - show status
+                if SERVER_PID_FILE.exists():
+                    if run(f'ps -C runserver', shell=True, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
+                        print("Config server has terminated unexpectedly")
+                        SERVER_PID_FILE.unlink()
+                        state = "killed"
+                    else:
+                        state = "running"
+                else:
+                    state = "stopped"
+                print(f"Config server is {state}")
+                die(1)
+
+            action = sys.argv[2]
+            if action == 'run':
+                manage_script_path = Path('~/ConfigServer/manage.py').expanduser()
+                command = ['python', f'{manage_script_path}', 'runserver', '0:8000']
+                print(f"Command: {' '.join(command)}")
+                result = run(command, text=True)
+                die(result.returncode)
+
+            if action == 'stop':
+                stop_server(SERVER_PID_FILE, 'Config server')
+
+            else:
+                print(f"Invalid command {action}. Try 'run', 'stop'")
 
         else:
             print(f"Error: invalid command '{command}'")
