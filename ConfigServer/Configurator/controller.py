@@ -269,9 +269,6 @@ class Action:
             if parameter.startswith('power-'):
                 cls.flags.append('-z')
 
-            if cls.mvbs_action != 'stop':
-                cls.mvbs_action = 'restart'
-
     @classmethod
     def switchBaseStation(cls, item, value):
         if value == 'on' and not MVBS_PID_FILE.exists():
@@ -320,14 +317,19 @@ class Action:
             if handler not in (None, NotImplemented):
                 handler(key, value[0])
 
+        if MVBS_PID_FILE.exists() and cls.config_changed:
+            cls.mvbs_action = 'restart'
+
+        print(f"Config changed: {cls.config_changed}")
         print(f"Action: {cls.mvbs_action}")
-        if cls.mvbs_action:
-            mvbs_handler(cls.mvbs_action, flags=cls.flags)
 
         if cls.config_changed:
             with CONFIG_FILE.open('tw', encoding='utf-8') as file:
                 toml.dump(CONFIG, file)
                 # TODO: preserve comments
+
+        if cls.mvbs_action:
+            mvbs_handler(cls.mvbs_action, flags=cls.flags)
 
         cls.mvbs_action = None
         cls.config_changed = False
