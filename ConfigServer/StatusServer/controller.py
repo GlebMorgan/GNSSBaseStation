@@ -91,7 +91,7 @@ def get_zero2go_status():
     command = 'bash -c ". /home/pi/zero2go/utilities.sh && read_channel_A && read_channel_B && read_channel_C"'
     # In case of failure, result will be bare 0
     raw = run(command, capture_output=True, shell=True, text=True).stdout.split()
-    return tuple(raw) if len(raw) == 3 else None
+    return tuple(raw) if len(raw) == 3 else (0, 0, 0)
 
 
 def get_status(config):

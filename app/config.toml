@@ -42,7 +42,7 @@ mode = 'Fixed'
 # Minimum observation time [s]
 observe = 180
 # Required positional accuracy [mm]
-accuracy = 50_000
+accuracy = 50
 # Coordinates in WGS84 [m], decimal separator - dot
 lat = 53.89878252
 lon = 27.44895374

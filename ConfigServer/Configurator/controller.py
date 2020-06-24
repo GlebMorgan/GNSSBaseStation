@@ -6,6 +6,8 @@ from pathlib import Path
 from subprocess import run
 from time import sleep
 
+from StatusServer.controller import get_str2str_status, get_ntrips_status, get_zero2go_status, format_unit
+from StatusServer.controller import StreamStatus
 import toml
 
 
@@ -114,9 +116,6 @@ def get_rtk2go_status(caster_config):
 
 
 def get_config_updates():
-    from StatusServer.controller import get_str2str_status, get_ntrips_status, get_zero2go_status, format_unit
-    from StatusServer.controller import StreamStatus
-
     str2str_timestamp_fmt = r'%Y/%m/%d %H:%M:%S'
     target_timestamp_fmt = r'%d.%m.%Y %H:%M:%S'
 
@@ -124,6 +123,7 @@ def get_config_updates():
     active_channel = ('usb', 'lemo', 'ups')[voltages.index(max(voltages))]
 
     base_status = get_ntrips_status()
+    str2str_details = None
     if base_status == 'running':
         base_temper = 'success'
         str2str_details = get_str2str_status(STR2STR_LOG)
@@ -140,16 +140,19 @@ def get_config_updates():
             'killed': 'danger',
             'stopped': 'dark'
         }.get(base_status, 'warning')
+
+        server_status = 'Down'
+        server_temper = 'dark'
+        timestamp = datetime.now()
+
+    if not str2str_details:
         str2str_details = {
-            'state': ('Down', 'Down'),
+            'state': 'Down',
             'received': 0,
             'rate': 0,
             'streams': 0,
             'info': '',
         }
-        server_status = 'Down'
-        server_temper = 'dark'
-        timestamp = datetime.now()
 
     caster_status = get_rtk2go_status(CONFIG['NTRIPC'])
     caster_temper = {
@@ -173,28 +176,32 @@ def get_config_updates():
         'Connected': 'success',
     }
 
-    rtcm_status = {
-        'input': StreamStatus(str2str_details['state'][0]).name,
-        'output': StreamStatus(str2str_details['state'][1]).name,
-    }
+    if str2str_details['state'] == 'Down':
+        rtcm_status = dict.fromkeys(('input', 'output'), 'Down')
+    else:
+        rtcm_status = {
+            'input': StreamStatus(str2str_details['state'][0]).name,
+            'output': StreamStatus(str2str_details['state'][1]).name,
+        }
 
     return [
-    {'name': 'power-status', 'value': active_channel.upper(), 'temper': 'success'},
-    {'name': 'base-status', 'value': base_status.upper(), 'temper': base_temper},
-    {'name': 'ntripc-status', 'value': caster_status.upper(), 'temper': caster_temper},
-    {'name': 'ntrips-status', 'value': server_status.upper(), 'temper': server_temper},
-    {'name': 'usb-voltage-bar', 'value': f'{voltages[0]}V'},
-    {'name': 'lemo-voltage-bar', 'value': f'{voltages[1]}V'},
-    {'name': 'ups-voltage-bar', 'value': f'{voltages[2]}V'},  # may be useful: format = :.2f
-    {'name': 'base-details', 'value': base_mode_description[CONFIG['BASE']['mode'].lower()]},
-    {'name': 'rtcm-input-stream-status', 'value': rtcm_status['input'],
-                                         'temper': stream_status_tempers[rtcm_status['input']]},
-    {'name': 'rtcm-input-stream-details', 'value': format_unit(int(str2str_details['rate']), 'B', decimals=2)},
-    {'name': 'rtcm-output-stream-status', 'value': rtcm_status['output'],
-                                          'temper': stream_status_tempers[rtcm_status['output']]},
-    {'name': 'rtcm-output-stream-details', 'value': format_unit(int(str2str_details['received']), 'B/s', decimals=2)},
-    {'name': 'rtcm-stream-details', 'value': str2str_details['info']},
-    {'name': 'timestamp', 'value': datetime.strftime(timestamp, target_timestamp_fmt)},
+        {'name': 'power-status', 'value': active_channel.upper(), 'temper': 'success'},
+        {'name': 'base-status', 'value': base_status.upper(), 'temper': base_temper},
+        {'name': 'ntripc-status', 'value': caster_status.upper(), 'temper': caster_temper},
+        {'name': 'ntrips-status', 'value': server_status.upper(), 'temper': server_temper},
+        {'name': 'usb-voltage-bar', 'value': f'{voltages[0]}V'},
+        {'name': 'lemo-voltage-bar', 'value': f'{voltages[1]}V'},
+        {'name': 'ups-voltage-bar', 'value': f'{voltages[2]}V'},  # may be useful: format = :.2f
+        {'name': 'base-details', 'value': base_mode_description[CONFIG['BASE']['mode'].lower()]},
+        {'name': 'rtcm-input-stream-status', 'value': rtcm_status['input'],
+         'temper': stream_status_tempers[rtcm_status['input']]},
+        {'name': 'rtcm-input-stream-details', 'value': format_unit(int(str2str_details['received']), 'B', decimals=2)},
+        {'name': 'rtcm-output-stream-status', 'value': rtcm_status['output'],
+         'temper': stream_status_tempers[rtcm_status['output']]},
+        {'name': 'rtcm-output-stream-details',
+         'value': format_unit(int(str2str_details['rate']), 'B/s', decimals=2)},
+        {'name': 'rtcm-stream-details', 'value': str2str_details['info']},
+        {'name': 'timestamp', 'value': datetime.strftime(timestamp, target_timestamp_fmt)},
     ]
 
 
@@ -269,7 +276,7 @@ class Action:
     def switchBaseStation(cls, item, value):
         if value == 'on' and not MVBS_PID_FILE.exists():
             cls.mvbs_action = 'start'
-        elif MVBS_PID_FILE.exists():
+        elif value == 'off' and MVBS_PID_FILE.exists():
             cls.mvbs_action = 'stop'
 
     @classmethod
