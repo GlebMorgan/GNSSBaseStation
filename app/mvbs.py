@@ -428,7 +428,6 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print("\n\n--- Script interrupted by SIGINT ---\n")
-        exitcode = cleanup_server()
         die(exitcode)
 
     except Exception as e:
