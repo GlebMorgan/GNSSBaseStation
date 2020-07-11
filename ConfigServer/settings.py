@@ -27,8 +27,10 @@ DEBUG = True
 
 # TODO: get IP automatically from system config
 ALLOWED_HOSTS = [
+    '375298400793.dyndns.mts.by',  # OdincovaDev MicroTik Router
+    'b8790a3e9ffb.sn.mynetname.net',  # M.Belakovo MikroTik Router
     '192.168.100.13',  # Rpi3
-    'localhost'        # Remote browser
+    'localhost',  # Remote browser
 ]
 
 
