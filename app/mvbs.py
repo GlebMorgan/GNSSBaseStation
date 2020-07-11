@@ -26,41 +26,33 @@ import sys
 from enum import Enum, Flag
 from os import mkfifo, pipe2, O_NONBLOCK
 from pathlib import Path
-from subprocess import run, Popen, DEVNULL, STDOUT
-from time import strftime
+from subprocess import run, Popen, DEVNULL, STDOUT, TimeoutExpired
+from time import strftime, sleep
 from typing import Tuple
 
 import toml
 
-# TODO: migrate to logging and make use of config['tracelevel']
 
-# TODO: update mvbs docstring (incorporate proxying and reset functionalities)
+# TODO: update module docstring
 
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 PROJECT = Path('/home/pi/app')
-CONFIG_FILE = PROJECT/'config.toml'
-STR2STR = PROJECT/'str2str-demo5'
-STR2STR_LOG = PROJECT/'logs'/f'{STR2STR.stem}.log'
-UBX_CONFIG = PROJECT/'ubx_config.py'
-RTCM_PROXY = PROJECT/'rtcm_proxy.py'
-RTCM_PROXY_LOG = PROJECT/'logs'/f'{RTCM_PROXY.stem}.log'
-PID_FILE = Path('/run/user/bs/ntrips.pid')
-SERVER_PID_FILE = Path('/run/user/bs/django.pid')
+CONFIG_FILE = PROJECT / 'config.toml'
 
-# NOTE: ACCUMULATIVE_LOGS break configurator UI updates
+STR2STR = PROJECT / 'str2str-demo5'
+STR2STR_LOG = PROJECT / 'logs' / f'{STR2STR.stem}.log'
+UBX_CONFIG = PROJECT / 'ubx_config.py'
+RTCM_PROXY = PROJECT / 'rtcm_proxy.py'
+RTCM_PROXY_LOG = PROJECT / 'logs' / f'{RTCM_PROXY.stem}.log'
+CONFIGURATOR_STARTUP_SCRIPT = Path('/home/pi/ConfigServer/manage.py')
+CONFIGURATOR_LOG = PROJECT / 'logs' / 'ConfigServer.log'
+
+NTRIPS_PID_FILE = Path('/run/user/bs/ntrips.pid')
+CONFIGURATOR_PID_FILE = Path('/run/user/bs/django.pid')
+
 ACCUMULATIVE_LOGS = True
-
-str2str_process = None
-
-help_message = f"""
-Minimal viable base station v{__version__}
-Commands:
-    state - show current state of NTRIP server (running / stopped)
-    start - start NTRIP server with parameters specified in config.toml
-    stop  - terminate NTRIP server
-"""
 
 
 def makefifo(*args, exist_ok=True, **kwargs):
@@ -70,6 +62,26 @@ def makefifo(*args, exist_ok=True, **kwargs):
     except OSError as err:
         if err.errno != errno.EEXIST and exist_ok is False:
             raise
+
+
+def ensure_started(desired: bool, pid_file: Path, name: str):
+    if pid_file.exists() is not desired:
+        msg = f"{name} is not running" if desired else f"{name} is already running"
+        print(msg)
+        die(0)
+
+
+def get_state(pid_file: Path):
+    if pid_file.exists():
+        pid = pid_file.read_text().strip()
+        if run(f'test -d /proc/{pid}', shell=True).returncode != 0:
+            pid_file.unlink()
+            state = "killed"
+        else:
+            state = "running"
+    else:
+        state = "stopped"
+    return state
 
 
 class FlagEnum(Flag):
@@ -120,10 +132,10 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict, 
         if isinstance(inject, int):
             inject = (str(inject),)
         else:
-            inject = tuple(str(msgid) for msgid in server_config['inject'])
+            inject = tuple(str(msg_id) for msg_id in server_config['inject'])
 
         pipe_output, pipe_input = pipe2(O_NONBLOCK)
-        verbose = ('-t', str(verbose)) if verbose is not False else ()
+        verbose = ('-t', str(verbose)) if verbose else ()
         str2str = f'{STR2STR}', '-out', f'ntrips://{out_spec}', *verbose
         str2str_input = pipe_output
         rtcm_proxy = 'python', f'{RTCM_PROXY}', '-in', f'serial://{in_spec}', '-a', f'{server_config["anchor"]}', \
@@ -133,9 +145,6 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict, 
         print(f"Command: {' '.join(rtcm_proxy)}")
 
         rtcm_proxy_process = Popen(rtcm_proxy, encoding='utf-8', stdout=pipe_input)
-        if rtcm_proxy_process.returncode:
-            print("Failed to start RTCM proxy")  # TODO
-            die(rtcm_proxy_process.returncode)
 
     else:
         str2str = f'{STR2STR}', '-in', f'serial://{in_spec}', '-out', f'ntrips://{out_spec}'
@@ -144,55 +153,50 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict, 
     print("Starting NTRIP server...")
     print(f"Command: {' '.join(str2str)}")
 
-    global str2str_process
-    PID_FILE.touch()
-
     if ACCUMULATIVE_LOGS:
         log_file = STR2STR_LOG.with_name(STR2STR_LOG.stem + '_' + strftime('%d-%m-%Y_%H-%M-%S') + STR2STR_LOG.suffix)
     else:
         log_file = STR2STR_LOG
 
-    str2str_process = Popen(str2str, encoding='utf-8', stdin=str2str_input,
-                            stdout=log_file.open('w'), stderr=STDOUT)
-    PID_FILE.write_text(str(str2str_process.pid))
+    str2str_process = Popen(str2str, encoding='utf-8', stdin=str2str_input, stdout=log_file.open('w'), stderr=STDOUT)
 
+    # Wait a bit to ensure the process didn't crash short
+    try:
+        str2str_process.wait(0.1)
+    except TimeoutExpired:
+        pass
+    else:
+        print("Failed to start NTRIP server")
+        die(str2str_process.returncode)
+
+    NTRIPS_PID_FILE.write_text(str(str2str_process.pid))
     print("NTRIP server process spawned")
 
     return 0
 
 
-def stop_server(pid_file, name) -> int:
-    print(f"Terminating {name}... ")
-    pid = pid_file.read_text().strip()
-    result = run(f'kill -INT {pid}', shell=True, text=True, capture_output=True)
+def stop_process(pid_file, name) -> int:
+    print(f"Terminating {name}...")
 
-    if result.stdout:
-        print(f"Got unexpected result from 'kill' command: {result.stdout.decode()}")
-    if result.returncode != 0:
+    if not pid_file.exists():
+        print(f"Unable to stop {name} process - .pid file is missing")
+        return -1
+
+    pid = pid_file.read_text().strip()
+    interrupt_result = run(f'kill -INT {pid}', shell=True, text=True, capture_output=True)
+
+    if interrupt_result.stdout:
+        print(f"Got unexpected result from 'kill' command: {interrupt_result.stdout.decode()}")
+    if interrupt_result.returncode != 0:
         print(f"Failed to terminate {name} process")
+        print(f"Killing #{pid}...")
+        interrupt_result = run(f'kill {pid}', shell=True, text=True, capture_output=True)
+        print(f"Killed process #{pid}")
     else:
         print(f"Terminated process #{pid}")
 
-    if pid_file.exists():
-        pid_file.unlink()
-
-    return result.returncode
-
-
-def cleanup_server():
-    global str2str_process
-    if str2str_process and str2str_process.poll() is None:
-        print("Terminating 'str2str' process...")
-        str2str_process.terminate()
-        # Wait str2str to terminate - 3s should be by far enough
-        str2str_process.wait(3)
-        if str2str_process.poll() is None:
-            str2str_process.kill()
-    try:
-        PID_FILE.unlink()
-    except Exception:
-        pass
-    return str2str_process.returncode if str2str_process else 0
+    pid_file.unlink()
+    return interrupt_result.returncode
 
 
 def wgs84_to_ublox(value: float, valtype: str) -> Tuple[int, int]:
@@ -330,65 +334,69 @@ def config_zero2go(config):
             i2c_write(str(item['register']), str(item['convert'](item['target'])))
 
 
-if __name__ == '__main__':
-    try:
-        print(f"Environment: '{PROJECT}'")
-        print(f"Script: '{__file__}'")
+def print_help():
+    command_description = {
+        'state':              ('show current state of NTRIP server (running / stopped / killed)',),
+        'start [-c] [-z]':    ('start NTRIP server with parameters specified in config.toml',
+                               '-c and -z parameters will reconfigure uBlox chip and zero2go module respectively',
+                               'with parameters specified in config.toml'),
+        'restart [-c] [-z]':  ('restart NTRIP server and reconfigure uBlox (-c) or/and zero2go (-z)',),
+        'stop':               ('terminate NTRIP server',),
+        'log [lines]':        ('show NTRIP server log (truncated to \'lines\' number of lines, if specified)',),
+        'reset':              ('reset all (!) uBlox configuration to factory defaults',
+                               'May be later configured once again with \'start -c\' command'),
+        'server run':         ('start Config server in foreground (blocking, output is shown in console)',),
+        'server start':       ('start Config server in background (non-blocking, output is redirected to log file)',),
+        'server stop':        ('terminate Config server',),
+        'server log [lines]': ('show Config server log, similarly to above',),
+    }
 
+    commands_col_width = max(len(item) for item in command_description.keys())
+
+    print("Minimal viable base station v{__version__}")
+    print("Commands:")
+    for name, description in command_description.items():
+        command_column = name.ljust(commands_col_width)
+        for line in description:
+            print(f"    {command_column}  {line}")
+            command_column = ''.ljust(commands_col_width+4)
+
+
+if __name__ == '__main__':
+    command = None
+    try:
         config = toml.load(str(CONFIG_FILE))
-        print(f"Loaded {CONFIG_FILE.name}")
 
         if len(sys.argv) < 2:
-            print(help_message)
+            print_help()
             die(0)
 
         command = sys.argv[1]
 
         if command == 'test':
-            config_zero2go(config['POWER'])
             die(test(config))
 
         if command == 'stop':
-            if not PID_FILE.exists():
-                print("NTRIP server is not running")
-                die(0)
-            die(stop_server(PID_FILE, 'NTRIP server'))
+            ensure_started(True, NTRIPS_PID_FILE, 'NTRIP server')
+            die(stop_process(NTRIPS_PID_FILE, 'NTRIP server'))
 
-        elif command == 'start':
-            if PID_FILE.exists():
-                print("NTRIP server is already running")
-                die(0)
+        elif command == 'start' or command == 'restart':
+            if command == 'start':
+                ensure_started(False, NTRIPS_PID_FILE, 'NTRIP server')
+                if '-a' in sys.argv and config['autostart'] is False:
+                    print("Automatic startup is disabled, enable in config.toml")
+                    die(0)
 
-            if config['autostart'] is False and '-a' in sys.argv:
-                print("Automatic startup is disabled")
-                print("Could be enabled with 'autostart = true' in config.toml")
-                die(0)
-
-            if config['BASE']['autoconfig'] is True:
-                exitcode = config_ublox(config['BASE'], config['SERIAL'])
-                if exitcode != 0:
-                    print("Receiver configuration was not completed due to ubxtool errors")
-                    die(exitcode)
-            else:
-                print("Receiver auto-config is disabled")
-                print("Could be enabled with 'BASE.autoconfig = true' in config.toml")
-
-            verbosity = False
-            if '-v' in sys.argv:
-                verbosity = 5
-
-            die(start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'], verbose=verbosity))
-
-        elif command == 'restart':
-            if not PID_FILE.exists():
-                print("NTRIP server is not running")
-            else:
-                stop_server(PID_FILE, 'NTRIP server')
+            if command == 'restart':
+                if NTRIPS_PID_FILE.exists():
+                    stop_process(NTRIPS_PID_FILE, 'NTRIP server')
+                else:
+                    print("NTRIP server is not running")
 
             if '-c' in sys.argv:
                 exitcode = config_ublox(config['BASE'], config['SERIAL'])
                 if exitcode != 0:
-                    print("Receiver configuration was not completed, restart failed")
+                    print(f"Receiver configuration was not completed. {command.capitalize()} failed")
                     die(exitcode)
                 else:
                     print("Receiver is reconfigured successfully")
@@ -397,71 +405,83 @@ if __name__ == '__main__':
                 try:
                     config_zero2go(config['POWER'])
                 except Zero2GoError as e:
-                    print(f"Zero2Go configuration was not completed: {e}")
+                    print(f"Zero2Go configuration was not completed: {e}. {command.capitalize()} failed")
                     die(e.returncode)
                 else:
                     print("Zero2Go is reconfigured successfully")
 
-            exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
-            print(f"NTRIP server restart {'failed' if exitcode else 'success'}")
+            verbosity = 5 if '-v' in sys.argv else False
+            exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'], verbose=verbosity)
+
+            print(f"NTRIP server {command} {'failed' if exitcode else 'success'}")
             die(exitcode)
 
         elif command == 'reset':
-            if PID_FILE.exists():
-                print("NTRIP server is running, cannot reset. Stop with 'mvbs stop'")
-                exit(1)
+            if NTRIPS_PID_FILE.exists():
+                was_running = True
+                stop_process(NTRIPS_PID_FILE, 'NTRIP server')
+            else:
+                was_running = False
 
             exitcode = reset_ublox(config['BASE'], config['SERIAL'])
             print(f"Receiver reset {'failed' if exitcode else 'success'}")
-            exit(exitcode)
+
+            if exitcode:
+                die(exitcode)
+            elif was_running:
+                exitcode = start_server(config['SERIAL'], config['NTRIPS'], config['NTRIPC'])
+                die(exitcode)
 
         elif command == 'state':
-            if PID_FILE.exists():
-                if run(f'ps -C {STR2STR.name}', shell=True, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
-                    print("'str2str' process has terminated unexpectedly")
-                    PID_FILE.unlink()
-                    state = "killed"
-                else:
-                    state = "running"
-            else:
-                state = "stopped"
-            print(f"NTRIP server is {state}")
+            print(f"NTRIP server is {get_state(NTRIPS_PID_FILE)}")
+            die(0)
 
         elif command == 'log':
-            max_lines = int(sys.argv[2]) if len(sys.argv) == 3 else None
+            max_lines = int(sys.argv[-1]) if len(sys.argv) == 3 else None
             logfiles = STR2STR_LOG.parent.glob(STR2STR.stem + '*.log')
             logfile = max(logfiles, key=lambda file: file.stat().st_mtime)
             lines = logfile.read_text(encoding='utf-8', errors='replace').split('\n')
             print(*lines[-(max_lines or 0):], sep='\n')
 
         elif command == 'server':
-            if len(sys.argv) < 3:
-                # Command is missing - show status
-                if SERVER_PID_FILE.exists():
-                    if run(f'ps -C runserver', shell=True, stdout=DEVNULL, stderr=DEVNULL).returncode != 0:
-                        print("Config server has terminated unexpectedly")
-                        SERVER_PID_FILE.unlink()
-                        state = "killed"
-                    else:
-                        state = "running"
-                else:
-                    state = "stopped"
-                print(f"Config server is {state}")
-                die(1)
+            if len(sys.argv) == 2:
+                # No command - show status
+                print(f"Config server is {get_state(CONFIGURATOR_PID_FILE)}")
+                die(0)
 
             action = sys.argv[2]
-            if action == 'run':
-                manage_script_path = Path('~/ConfigServer/manage.py').expanduser()
-                command = ['python', f'{manage_script_path}', 'runserver', '0:8000']
-                print(f"Command: {' '.join(command)}")
-                result = run(command, text=True)
-                die(result.returncode)
 
-            if action == 'stop':
-                stop_server(SERVER_PID_FILE, 'Config server')
+            if action == 'start' or action == 'run':
+                if config['autostart'] is False and '-a' in sys.argv:
+                    print("Automatic startup is disabled, enable in config.toml")
+                    die(0)
+
+                django_command = ['python', f'{CONFIGURATOR_STARTUP_SCRIPT}', 'runserver', '0:8000']
+                print(f"Command: {' '.join(django_command)}")
+
+                if action == 'run':
+                    # Run in foreground, blocking, output is shown in console
+                    result = run(django_command, text=True)
+                    die(result.returncode)
+
+                if action == 'start':
+                    # Run in background, non-blocking, output is redirected to log file
+                    django_process = Popen(django_command, encoding='utf-8',
+                                           stdout=CONFIGURATOR_LOG.open('w'), stderr=STDOUT)
+                    CONFIGURATOR_PID_FILE.write_text(str(django_process.pid))
+                    print("Config server process spawned")
+
+            elif action == 'stop':
+                ensure_started(True, CONFIGURATOR_PID_FILE, 'Config server')
+                die(stop_process(CONFIGURATOR_PID_FILE, 'Config server'))
+
+            elif action == 'log':
+                max_lines = int(sys.argv[-1]) if len(sys.argv) == 4 else None
+                lines = CONFIGURATOR_LOG.read_text(encoding='utf-8', errors='replace').split('\n')
+                print(*lines[-(max_lines or 0):], sep='\n')
 
             else:
-                print(f"Invalid command {action}. Try 'run', 'stop'")
+                print(f"Error: invalid action '{action}'")
 
         else:
             print(f"Error: invalid command '{command}'")
@@ -474,5 +494,4 @@ if __name__ == '__main__':
 
     except Exception as e:
         print(f'{e.__class__.__name__}: {e or "<No details>"}')
-        cleanup_server()
         die(1)
