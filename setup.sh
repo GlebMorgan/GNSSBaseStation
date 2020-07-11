@@ -31,6 +31,23 @@ alias ll='ls $LS_OPTIONS -lA'
 
 #########################################################################
 
+echo STATIC IP  # TESTME
+
+echo "
+source-directory /etc/network/interfaces.d
+
+auto eth0
+iface eth0 inet static
+        address 192.168.100.13
+        netmask 255.255.255.0
+        gateway 192.168.100.1
+" > /etc/network/interfaces
+
+sudo systemctl disable dhcpcd
+sudo systemctl enable networking
+
+#########################################################################
+
 echo PYTHON
 
 # Install python3
