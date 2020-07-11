@@ -9,7 +9,7 @@ from time import sleep
 import toml
 
 from StatusServer.controller import StreamStatus
-from StatusServer.controller import get_str2str_status, get_ntrips_status, get_zero2go_status, format_unit
+from StatusServer.controller import get_str2str_status, get_ntrips_status, format_unit
 
 
 PROJECT = Path('/home/pi/app')
@@ -130,6 +130,23 @@ def get_rtk2go_status(caster_config):
         return 'Down'
     else:
         return 'Up'
+
+
+def get_zero2go_status():
+    """
+    Get List[int, int, int] of zero2go input channels [chA, chB, chC]
+    """
+
+    voltages = [None, None, None]
+    for channel in range(3):
+        args = ['i2cget', '-y', '0x01', '0x29']
+        integerPart = run(args + [str(channel*2 + 1)], text=True, capture_output=True)
+        decimalPart = run(args + [str(channel*2 + 2)], text=True, capture_output=True)
+        if all(result.returncode == 0 and result.stdout for result in (integerPart, decimalPart)):
+            voltages[channel] = int(integerPart.stdout, 0) + int(decimalPart.stdout, 0) / 100
+        else:
+            voltages[channel] = 0
+    return voltages
 
 
 def get_config_updates():
