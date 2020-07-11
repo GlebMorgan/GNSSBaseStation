@@ -27,6 +27,8 @@ eval \"\`dircolors\`\"
 alias ls='ls $LS_OPTIONS'
 alias l='ls $LS_OPTIONS -l'
 alias ll='ls $LS_OPTIONS -lA'
+alias sps='ps -Af | grep'
+alias p='ps -Hf -C'
 " >> ~/.profile
 
 #########################################################################
@@ -61,6 +63,7 @@ pip3 install pyserial
 cd /usr/bin
 sudo rm python
 sudo ln -s python3 python
+sudo ln -s pip3 pip
 
 #########################################################################
 

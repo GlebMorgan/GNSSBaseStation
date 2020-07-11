@@ -145,3 +145,4 @@ test*.*
 # Others
 /ubxtool_items.txt
 /app/gps/
+/zero2go/

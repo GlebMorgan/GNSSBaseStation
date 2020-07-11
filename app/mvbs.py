@@ -87,7 +87,7 @@ def get_state(pid_file: Path):
 class FlagEnum(Flag):
     @property
     def flags(self) -> list:
-        return Flag.__str__(self)[self.__class__.__name__.__len__()+1:].split('|')
+        return Flag.__str__(self)[self.__class__.__name__.__len__() + 1:].split('|')
 
 
 class TMode(Enum):
@@ -105,6 +105,7 @@ class MLevel(FlagEnum):
 
 class Zero2GoError(OSError):
     """ Error while communication with Zero2Go module """
+
     def __init__(self, *args, returncode=1):
         super().__init__(*args)
         self.returncode = returncode
@@ -123,7 +124,6 @@ def test(*args) -> int:
 
 
 def start_server(serial_config: dict, server_config: dict, caster_config: dict, *, verbose: int = False) -> int:
-
     in_spec = '{port}:{baudrate}:{bytesize}:{parity}:{stopbits}:{flowcontrol}'.format(**serial_config)
     out_spec = ':{password}@{domain}:{port}/{mountpoint}:{str}'.format(**caster_config)
     inject = server_config['inject']
@@ -171,7 +171,6 @@ def start_server(serial_config: dict, server_config: dict, caster_config: dict, 
 
     NTRIPS_PID_FILE.write_text(str(str2str_process.pid))
     print("NTRIP server process spawned")
-
     return 0
 
 

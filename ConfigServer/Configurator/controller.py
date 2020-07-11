@@ -112,7 +112,7 @@ def random_status_generator(rate):
 
 def status_updater():
     for n in count():
-        yield f'data: {json.dumps(get_config_updates())}\n\n'
+        yield f'data: {json.dumps(get_status_updates())}\n\n'
         sleep(UPDATE_PERIOD)
 
 
@@ -149,7 +149,8 @@ def get_zero2go_status():
     return voltages
 
 
-def get_config_updates():
+def get_status_updates():
+    # TODO: Refactor to get_status_updates()
     str2str_timestamp_fmt = r'%Y/%m/%d %H:%M:%S'
     target_timestamp_fmt = r'%d.%m.%Y %H:%M:%S'
 
