@@ -16,6 +16,8 @@ PROJECT = Path('/home/pi/app')
 CONFIG_FILE = PROJECT / 'config.toml'
 MVBS_PATH = PROJECT / 'mvbs.py'
 MVBS_PID_FILE = Path('/run/user/bs/ntrips.pid')
+CURL = Path('/usr/bin/curl')
+I2CGET = Path('/usr/sbin/i2cget')
 
 CONFIG = toml.load(str(CONFIG_FILE))
 UPDATE_PERIOD = 1
@@ -121,7 +123,7 @@ def get_rtk2go_status(caster_config):
         return 'Unknown'
 
     url = 'http://rtk2go.com:{config[port]}/SNIP::MOUNTPT?NAME={config[mountpoint]}'.format(config=caster_config)
-    result = run(['curl', '-s', url], text=True, capture_output=True)
+    result = run([CURL, '-s', url], text=True, capture_output=True)
 
     if result.returncode != 0:
         # NOTE: Sometimes RTK2Go replies with no data => curl fails with returncode 52
@@ -139,7 +141,7 @@ def get_zero2go_status():
 
     voltages = [None, None, None]
     for channel in range(3):
-        args = ['i2cget', '-y', '0x01', '0x29']
+        args = [I2CGET, '-y', '0x01', '0x29']
         integerPart = run(args + [str(channel*2 + 1)], text=True, capture_output=True)
         decimalPart = run(args + [str(channel*2 + 2)], text=True, capture_output=True)
         if all(result.returncode == 0 and result.stdout for result in (integerPart, decimalPart)):

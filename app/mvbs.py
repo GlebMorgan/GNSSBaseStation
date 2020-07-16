@@ -48,6 +48,8 @@ RTCM_PROXY = PROJECT / 'rtcm_proxy.py'
 RTCM_PROXY_LOG = PROJECT / 'logs' / f'{RTCM_PROXY.stem}.log'
 CONFIGURATOR_STARTUP_SCRIPT = Path('/home/pi/ConfigServer/manage.py')
 CONFIGURATOR_LOG = PROJECT / 'logs' / 'ConfigServer.log'
+I2CGET = Path('/usr/sbin/i2cget')
+I2CSET = Path('/usr/sbin/i2cset')
 
 NTRIPS_PID_FILE = Path('/run/user/bs/ntrips.pid')
 CONFIGURATOR_PID_FILE = Path('/run/user/bs/django.pid')
@@ -287,7 +289,7 @@ def reset_ublox(receiver_params: dict, serial_params: dict) -> int:
 
 
 def i2c_read(register):
-    result = run(['i2cget', '-y', '0x01', '0x29', register], text=True, capture_output=True)
+    result = run([I2CGET, '-y', '0x01', '0x29', register], text=True, capture_output=True)
     if result.returncode or not result.stdout:
         msg = f'Read {register} register failed: ' + result.stderr.strip() or '<No details>'
         raise Zero2GoError(msg, returncode=result.returncode)
@@ -295,13 +297,12 @@ def i2c_read(register):
 
 
 def i2c_write(register, value, verify=True):
-    print(f'''Debug: write command: {' '.join(['i2cset', '-y', '0x01', '0x29', register, value])}''')
-    result = run(['i2cset', '-y', '0x01', '0x29', register, value], text=True, capture_output=True)
+    result = run([I2CSET, '-y', '0x01', '0x29', register, value], text=True, capture_output=True)
     if result.returncode or not result.stdout:
         msg = f'Write {value} to {register} register failed: ' + result.stderr.strip() or '<No details>'
         raise Zero2GoError(msg, returncode=result.returncode)
     if verify:
-        confirm = run(['i2cget', '-y', '0x01', '0x29', register], text=True, capture_output=True)
+        confirm = run([I2CGET, '-y', '0x01', '0x29', register], text=True, capture_output=True)
         if confirm.stdout != value:
             raise Zero2GoError('Write check failed: ' + confirm.stderr.strip() or '<No details>')
 
