@@ -342,9 +342,10 @@ def print_help():
                                'with parameters specified in config.toml'),
         'restart [-c] [-z]':  ('restart NTRIP server and reconfigure uBlox (-c) or/and zero2go (-z)',),
         'stop':               ('terminate NTRIP server',),
-        'log [lines]':        ('show NTRIP server log (truncated to \'lines\' number of lines, if specified)',),
         'reset':              ('reset all (!) uBlox configuration to factory defaults',
                                'May be later configured once again with \'start -c\' command'),
+        'log [lines]':        ('show NTRIP server log (truncated to \'lines\' number of lines, if specified)',),
+        'name':               ('show BaseStation name',),
         'server run':         ('start Config server in foreground (blocking, output is shown in console)',),
         'server start':       ('start Config server in background (non-blocking, output is redirected to log file)',),
         'server stop':        ('terminate Config server',),
@@ -442,6 +443,10 @@ if __name__ == '__main__':
             logfile = max(logfiles, key=lambda file: file.stat().st_mtime)
             lines = logfile.read_text(encoding='utf-8', errors='replace').split('\n')
             print(*lines[-(max_lines or 0):], sep='\n')
+
+        elif command == 'name':
+            name = config['name']
+            print(f'Device name: {name}')
 
         elif command == 'server':
             if len(sys.argv) == 2:
