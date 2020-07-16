@@ -336,20 +336,20 @@ def config_zero2go(config):
 
 def print_help():
     command_description = {
-        'state':              ('show current state of NTRIP server (running / stopped / killed)',),
-        'start [-c] [-z]':    ('start NTRIP server with parameters specified in config.toml',
-                               '-c and -z parameters will reconfigure uBlox chip and zero2go module respectively',
-                               'with parameters specified in config.toml'),
-        'restart [-c] [-z]':  ('restart NTRIP server and reconfigure uBlox (-c) or/and zero2go (-z)',),
-        'stop':               ('terminate NTRIP server',),
-        'reset':              ('reset all (!) uBlox configuration to factory defaults',
-                               'May be later configured once again with \'start -c\' command'),
-        'log [lines]':        ('show NTRIP server log (truncated to \'lines\' number of lines, if specified)',),
-        'name':               ('show BaseStation name',),
-        'server run':         ('start Config server in foreground (blocking, output is shown in console)',),
-        'server start':       ('start Config server in background (non-blocking, output is redirected to log file)',),
-        'server stop':        ('terminate Config server',),
-        'server log [lines]': ('show Config server log, similarly to above',),
+        'state':              'show current state of NTRIP server (running / stopped / killed)',
+        'start [-c] [-z]':    'start NTRIP server with parameters specified in config.toml\n'
+                              '-c and -z parameters will reconfigure uBlox chip and zero2go module respectively\n'
+                              'with parameters specified in config.toml',
+        'restart [-c] [-z]':  'restart NTRIP server and reconfigure uBlox (-c) or/and zero2go (-z)',
+        'stop':               'terminate NTRIP server',
+        'reset':              'reset all (!) uBlox configuration to factory defaults\n'
+                              'May be later configured once again with \'start -c\' command',
+        'log [lines]':        'show NTRIP server log (truncated to \'lines\' number of lines, if specified)',
+        'name':               'show BaseStation name',
+        'server run':         'start Config server in foreground (blocking, output is shown in console)',
+        'server start':       'start Config server in background (non-blocking, output is redirected to log file)',
+        'server stop':        'terminate Config server',
+        'server log [lines]': 'show Config server log, similarly to above',
     }
 
     commands_col_width = max(len(item) for item in command_description.keys())
@@ -358,7 +358,7 @@ def print_help():
     print("Commands:")
     for name, description in command_description.items():
         command_column = name.ljust(commands_col_width)
-        for line in description:
+        for line in description.split('\n'):
             print(f"    {command_column}  {line}")
             command_column = ''.ljust(commands_col_width+4)
 
