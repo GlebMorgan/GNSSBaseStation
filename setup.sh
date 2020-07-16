@@ -13,6 +13,12 @@ sudo raspi-config --expand-rootfs
 sudo apt update
 sudo apt -y full-upgrade
 
+# Network time
+# (chances are, some kind of this config will be required too)
+# echo 'nameserver 8.8.8.8' > /etc/resolv.conf
+sudo apt-get install ntp
+sudo systemctl enable ntp
+
 # Enable UART
 sudo bash -c "echo -e '\nenable_uart=1' >> /boot/config.txt"
 
