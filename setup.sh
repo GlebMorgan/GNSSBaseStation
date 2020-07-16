@@ -14,9 +14,10 @@ sudo apt update
 sudo apt -y full-upgrade
 
 # Network time
-# (chances are, some kind of this config will be required too)
+# (chances are, this will be required too)
 # echo 'nameserver 8.8.8.8' > /etc/resolv.conf
-sudo apt-get install ntp
+# <set timezone to Europe - Minsk>
+sudo apt install ntp
 sudo systemctl enable ntp
 
 # Enable UART
@@ -59,8 +60,8 @@ sudo systemctl enable networking
 echo PYTHON
 
 # Install python3
-sudo apt-get update
-sudo apt-get -y install python3-pip
+sudo apt update
+sudo apt -y install python3-pip
 
 # Install pySerial package
 pip3 install pyserial
@@ -120,7 +121,7 @@ echo UCENTER
 
 # uBlox <-> uCenter forwarding
 cd ~/app
-sudo apt-get install socat
+sudo apt install socat
 echo "sudo socat tcp-listen:2020,reuseaddr /dev/serial0,b115200,raw,echo=0" > ucenter_forward.sh
 sudo chmod +x ucenter_forward.sh
 
@@ -130,7 +131,7 @@ echo UBXTOOL
 
 # Get GPSD/gps from GitLab to /app directory
 cd ~/app
-sudo apt-get install scons
+sudo apt install scons
 wget https://gitlab.com/gpsd/gpsd/-/archive/master/gpsd-master.zip
 unzip gpsd-master.zip
 rm gpsd-master.zip
@@ -153,8 +154,7 @@ wget http://www.uugear.com/repo/Zero2GoOmini/installZero2Go.sh
 # Run the installation
 sudo sh installZero2Go.sh
 
-# Clean up and remove unused libraries
-sudo apt autoremove
+# Remove installation script
 rm installZero2Go.sh
 
 #########################################################################
@@ -162,10 +162,10 @@ rm installZero2Go.sh
 echo VIM
 
 # Install vim
-sudo apt-get -y install vim
+sudo apt -y install vim
 
 # Install vim-plug
-sudo apt-get -y install git
+sudo apt -y install git
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
@@ -177,3 +177,10 @@ call plug#end()
 
 # Install plugins
 vim +PlugInstall +qall
+
+#########################################################################
+
+echo CLEANUP
+
+# Remove unused libraries
+sudo apt autoremove

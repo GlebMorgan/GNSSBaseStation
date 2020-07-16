@@ -152,7 +152,6 @@ def get_zero2go_status():
 
 
 def get_status_updates():
-    # TODO: Refactor to get_status_updates()
     str2str_timestamp_fmt = r'%Y/%m/%d %H:%M:%S'
     target_timestamp_fmt = r'%d.%m.%Y %H:%M:%S'
 

@@ -354,7 +354,7 @@ def print_help():
 
     commands_col_width = max(len(item) for item in command_description.keys())
 
-    print("Minimal viable base station v{__version__}")
+    print(f"Minimal viable base station v{__version__}")
     print("Commands:")
     for name, description in command_description.items():
         command_column = name.ljust(commands_col_width)
@@ -435,7 +435,6 @@ if __name__ == '__main__':
 
         elif command == 'state':
             print(f"NTRIP server is {get_state(NTRIPS_PID_FILE)}")
-            die(0)
 
         elif command == 'log':
             max_lines = int(sys.argv[-1]) if len(sys.argv) == 3 else None
