@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-# add configuration file to systemd-tmpfiles to create tmpfs directory for temporary data
-sudo mv ~/app/mvbs_tmpfiles.d.conf /usr/lib/tmpfiles.d/mvbs.conf
+# Add configuration to systemd-tmpfiles to create tmpfs directory for temporary data
+echo "# Type  Path            Mode  UID  GID  Age  Argument
+  d     /run/user/bs    1775  pi   pi   -
+" > /usr/lib/tmpfiles.d/mvbs.conf
 
 # Copy current crontab
 crontab -l > crontab_temp.txt
