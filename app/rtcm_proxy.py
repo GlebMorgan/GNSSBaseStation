@@ -161,7 +161,7 @@ try:
     anchor = args.anchor
     interval = args.interval
 
-    with source, output:
+    with source, output, logfile.open('w') as log:
         for i in count():
             while source.read(len(PREAMB)) != PREAMB: pass
             datalen = source.read(2)
@@ -169,6 +169,9 @@ try:
             crc = source.read(3)
 
             msgid = int.from_bytes(data[:2], 'big') >> 4
+            if i < 100:
+                print(msgid, file=log)
+                log.flush()
 
             send(PREAMB + datalen + data + crc)
             flush()
