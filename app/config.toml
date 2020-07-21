@@ -2,6 +2,7 @@ name = 'OdincovaDev'
 tracelevel = 'DEBUG'
 autostart = true
 status_update_rate = 5
+watchdog = true
 
 [POWER]
 shutdown = 3.2

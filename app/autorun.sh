@@ -12,6 +12,7 @@ crontab -l > crontab_temp.txt
 echo "* * * * * >/dev/null 2>&1
 @reboot python /home/pi/app/mvbs.py start -a
 @reboot python /home/pi/app/mvbs.py server start
+@reboot python /home/pi/app/mvbs.py dog -a
 " > crontab_temp.txt
 
 # Install new cron file

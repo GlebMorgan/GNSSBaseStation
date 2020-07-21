@@ -39,20 +39,28 @@ import toml
 __version__ = "1.3"
 
 PROJECT = Path('/home/pi/app')
+
 CONFIG_FILE = PROJECT / 'config.toml'
 
 STR2STR = PROJECT / 'str2str-demo5'
 STR2STR_LOG = PROJECT / 'logs' / f'{STR2STR.stem}.log'
+NTRIPS_PID_FILE = Path('/run/user/bs/ntrips.pid')
+
 UBX_CONFIG = PROJECT / 'ubx_config.py'
+
 RTCM_PROXY = PROJECT / 'rtcm_proxy.py'
 RTCM_PROXY_LOG = PROJECT / 'logs' / f'{RTCM_PROXY.stem}.log'
+
 CONFIGURATOR_STARTUP_SCRIPT = Path('/home/pi/ConfigServer/manage.py')
 CONFIGURATOR_LOG = PROJECT / 'logs' / 'ConfigServer.log'
+CONFIGURATOR_PID_FILE = Path('/run/user/bs/django.pid')
+
+WATCHDOG = PROJECT / 'watchdog.py'
+WATCHDOG_LOG = PROJECT / 'logs' / 'watchdog.log'
+
 I2CGET = Path('/usr/sbin/i2cget')
 I2CSET = Path('/usr/sbin/i2cset')
 
-NTRIPS_PID_FILE = Path('/run/user/bs/ntrips.pid')
-CONFIGURATOR_PID_FILE = Path('/run/user/bs/django.pid')
 
 ACCUMULATIVE_LOGS = True
 
@@ -336,6 +344,7 @@ def config_zero2go(config):
 
 def print_help():
     command_description = {
+        'name':               'show BaseStation name',
         'state':              'show current state of NTRIP server (running / stopped / killed)',
         'start [-c] [-z]':    'start NTRIP server with parameters specified in config.toml\n'
                               '-c and -z parameters will reconfigure uBlox chip and zero2go module respectively\n'
@@ -345,7 +354,7 @@ def print_help():
         'reset':              'reset all (!) uBlox configuration to factory defaults\n'
                               'May be later configured once again with \'start -c\' command',
         'log [lines]':        'show NTRIP server log (truncated to \'lines\' number of lines, if specified)',
-        'name':               'show BaseStation name',
+        'dog':                'start daemon watchdog process that automatically reloads NTRIP server on data loss',
         'server run':         'start Config server in foreground (blocking, output is shown in console)',
         'server start':       'start Config server in background (non-blocking, output is redirected to log file)',
         'server stop':        'terminate Config server',
@@ -377,7 +386,11 @@ if __name__ == '__main__':
         if command == 'test':
             die(test(config))
 
-        if command == 'stop':
+        elif command == 'name':
+            name = config['name']
+            print(f'Device name: {name}')
+
+        elif command == 'stop':
             ensure_started(True, NTRIPS_PID_FILE, 'NTRIP server')
             die(stop_process(NTRIPS_PID_FILE, 'NTRIP server'))
 
@@ -443,9 +456,15 @@ if __name__ == '__main__':
             lines = logfile.read_text(encoding='utf-8', errors='replace').split('\n')
             print(*lines[-(max_lines or 0):], sep='\n')
 
-        elif command == 'name':
-            name = config['name']
-            print(f'Device name: {name}')
+        elif command == 'dog':
+            if '-a' in sys.argv and config['watchdog'] is False:
+                print("Automatic watchdog startup is disabled, enable in config.toml")
+                die(0)
+
+            watchdog_command = ['python', f'{WATCHDOG}', '-i', '25']
+            watchdog_process = Popen(watchdog_command, encoding='utf-8',
+                                     stdout=WATCHDOG_LOG.open('w'), stderr=STDOUT)
+            print("Watchdog process spawned")
 
         elif command == 'server':
             if len(sys.argv) == 2:
