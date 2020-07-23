@@ -225,9 +225,9 @@ def get_status_updates():
         {'name': 'base-status', 'value': base_status.upper(), 'temper': base_temper},
         {'name': 'ntripc-status', 'value': caster_status.upper(), 'temper': caster_temper},
         {'name': 'ntrips-status', 'value': server_status.upper(), 'temper': server_temper},
-        {'name': 'usb-voltage-bar', 'value': f'{voltages[0]}V'},
-        {'name': 'lemo-voltage-bar', 'value': f'{voltages[1]}V'},
-        {'name': 'ups-voltage-bar', 'value': f'{voltages[2]}V'},  # may be useful: format = :.2f
+        {'name': 'usb-voltage-bar', 'value': f'{voltages[0]:.2f}V'},
+        {'name': 'lemo-voltage-bar', 'value': f'{voltages[1]:.2f}V'},
+        {'name': 'ups-voltage-bar', 'value': f'{voltages[2]:.2f}V'},
         {'name': 'base-details', 'value': base_mode_description[CONFIG['BASE']['mode'].lower()]},
         {'name': 'rtcm-input-stream-status', 'value': rtcm_status['input'],
          'temper': stream_status_tempers[rtcm_status['input']]},
