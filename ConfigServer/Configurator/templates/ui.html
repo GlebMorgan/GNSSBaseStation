@@ -172,7 +172,7 @@
                 <div class="input-group compact">
                   <div class="input-group-prepend"><span class="input-group-text add-on-coord">lat</span></div>
                   <input name="base-coord-lat" type="number" class="form-control" id="input-lat"
-                         value="{{ base.coords.lat }}" data-digits="11">
+                         step="0.00000001" value="{{ base.coords.lat }}" data-digits="11">
                   <div class="input-group-append"><span class="input-group-text">&deg;</span></div>
                 </div>
               </div>
@@ -180,7 +180,7 @@
                 <div class="input-group compact">
                   <div class="input-group-prepend"><span class="input-group-text add-on-coord">lon</span></div>
                   <input name="base-coord-lon" type="number" class="form-control" id="input-lon"
-                         value="{{ base.coords.lon }}" data-digits="11">
+                         step="0.00000001" value="{{ base.coords.lon }}" data-digits="11">
                   <div class="input-group-append"><span class="input-group-text">&deg;</span></div>
                 </div>
               </div>
@@ -188,7 +188,7 @@
                 <div class="input-group compact">
                   <div class="input-group-prepend"><span class="input-group-text add-on-coord">hgt</span></div>
                   <input name="base-coord-hgt" type="number" class="form-control" id="input-hgt"
-                         value="{{ base.coords.hgt }}" data-digits="8">
+                         step="0.001" value="{{ base.coords.hgt }}" data-digits="8">
                   <div class="input-group-append"><span class="input-group-text">m</span></div>
                 </div>
               </div>
