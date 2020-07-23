@@ -398,7 +398,7 @@ if __name__ == '__main__':
             if command == 'start':
                 ensure_started(False, NTRIPS_PID_FILE, 'NTRIP server')
                 if '-a' in sys.argv and config['autostart'] is False:
-                    print("Automatic startup is disabled, enable in config.toml")
+                    print("Automatic NTRIP server startup is disabled, enable in config.toml")
                     die(0)
 
             if command == 'restart':
@@ -454,6 +454,7 @@ if __name__ == '__main__':
             logfiles = STR2STR_LOG.parent.glob(STR2STR.stem + '*.log')
             logfile = max(logfiles, key=lambda file: file.stat().st_mtime)
             lines = logfile.read_text(encoding='utf-8', errors='replace').split('\n')
+            print(f"Log file: {logfile}")
             print(*lines[-(max_lines or 0):], sep='\n')
 
         elif command == 'dog':
@@ -473,7 +474,6 @@ if __name__ == '__main__':
                 die(0)
 
             action = sys.argv[2]
-
             if action == 'start' or action == 'run':
                 if config['autostart'] is False and '-a' in sys.argv:
                     print("Automatic startup is disabled, enable in config.toml")

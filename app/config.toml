@@ -26,7 +26,7 @@ interval = 1
 [NTRIPC]
 # NTRIP Caster domain name or IP address string
 domain = '87.252.246.164'
-port = 5001
+port = 5000
 mountpoint = 'TST1'
 password = '123'
 str = ''

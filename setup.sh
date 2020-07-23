@@ -1,6 +1,9 @@
 #!/bin/bash
 
-# Beforehand, create empty .ssh file in root folder of SD card
+# BEFOREHAND
+
+'create empty .ssh file in root folder of SD card'
+'change hostname via "sudo raspi-config"'
 
 #########################################################################
 

@@ -9,7 +9,8 @@ HOSTS_FILE = Path('Constrained hosts.txt')
 if argv[1:]:
     HOSTS = argv[1:]
 elif HOSTS_FILE.exists():
-    HOSTS = [item.strip() for item in HOSTS_FILE.read_text().split('\n')]
+    lines = HOSTS_FILE.read_text().split('\n')
+    HOSTS = [item.strip() for item in lines if item and not item.startswith('#')]
 else:
     raise RuntimeError("Hosts are not provided neither in args nor in 'Constrained hosts' file")
 

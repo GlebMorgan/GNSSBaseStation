@@ -130,6 +130,7 @@ dmypy.json
 *.rtcm
 *.rtcm3
 *.ubx
+*.txt
 
 # Test files
 TEST*.*
@@ -143,6 +144,5 @@ test*.*
 /StatusServer/Configurator/static/ui_style.css.map
 
 # Others
-/ubxtool_items.txt
 /app/gps/
 /zero2go/
