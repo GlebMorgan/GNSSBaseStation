@@ -488,6 +488,7 @@ if __name__ == '__main__':
                     die(result.returncode)
 
                 if action == 'start':
+                    ensure_started(False, CONFIGURATOR_PID_FILE, 'Config server')
                     # Run in background, non-blocking, output is redirected to log file
                     django_process = Popen(django_command, encoding='utf-8',
                                            stdout=CONFIGURATOR_LOG.open('w'), stderr=STDOUT)
