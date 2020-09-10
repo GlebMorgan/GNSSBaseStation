@@ -32,7 +32,8 @@ password = '123'
 str = ''
 
 [BASE]
-autoconfig = false
+# uBlox configuration in autostart mode
+autoconfig = true
 # Static basestation configuration file
 configfile = '~/uBlox_config_base_devoffice_MSM4.txt'
 # VALSET memory level = 'RAM', 'BBR', 'FLASH', 'ALL'

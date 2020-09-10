@@ -397,9 +397,12 @@ if __name__ == '__main__':
         elif command == 'start' or command == 'restart':
             if command == 'start':
                 ensure_started(False, NTRIPS_PID_FILE, 'NTRIP server')
-                if '-a' in sys.argv and config['autostart'] is False:
-                    print("Automatic NTRIP server startup is disabled, enable in config.toml")
-                    die(0)
+                if '-a' in sys.argv:
+                    if config['autostart'] is False:
+                        print("Automatic NTRIP server startup is disabled, enable in config.toml")
+                        die(0)
+                    if config['BASE']['autoconfig'] is True:
+                        sys.argv.append('-c')
 
             if command == 'restart':
                 if NTRIPS_PID_FILE.exists():
