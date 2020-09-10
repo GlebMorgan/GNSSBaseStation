@@ -42,7 +42,7 @@ PROJECT = Path('/home/pi/app')
 
 CONFIG_FILE = PROJECT / 'config.toml'
 
-STR2STR = PROJECT / 'str2str-demo5'
+STR2STR = PROJECT / 'bin' / 'str2str-demo5'
 STR2STR_LOG = PROJECT / 'logs' / f'{STR2STR.stem}.log'
 NTRIPS_PID_FILE = Path('/run/user/bs/ntrips.pid')
 

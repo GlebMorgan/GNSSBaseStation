@@ -53,7 +53,7 @@ if __name__ == '__main__':
     if args.mntpoint:
         out_args.append(rf'ntrips://:123@192.168.100.21:2101/{args.mntpoint}')
 
-    args = './str2str', '-in', in_arg, *prepend('-out', out_args), '-t', '5'
+    args = './bin/str2str', '-in', in_arg, *prepend('-out', out_args), '-t', '5'
     print(*args)
     # system(' '.join(args))
     with Popen(args, encoding='cp866', stdout=PIPE, stderr=STDOUT) as process:
