@@ -23,5 +23,5 @@ See also the [photo album of the prototype](https://photos.app.goo.gl/sFVDawy2RF
 [Raspberry Pi]: https://www.raspberrypi.org/products/raspberry-pi-3-model-b "Famous single-board microcomputer for prototyping"
 [GNSS chip]: https://www.u-blox.com/en/product/zed-f9p-module "uBlox ZED-F9P GNSS module"
 [Zero2Go]: http://www.uugear.com/product/zero2go "Power supply module for Raspberry Pi"
-[UPS module]: https://img.joomcdn.net/ca7776a690a82edaaa1614e4d83237471649e7e2_original.jpeg "Backup Li-ion battery + voltage converter"
+[UPS module]: https://www.addicore.com/TP4056-Charger-and-Protection-Module-p/ad310.htm "Backup Li-ion battery + battery charger module + voltage converter"
 [web interface]: https://drive.google.com/file/d/1GasgsTXRUagl4gKymb2i66jQ8qQs3EHE/view?usp=sharing "Screenshot of the web-based configuration UI"
